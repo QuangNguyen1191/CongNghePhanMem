@@ -1,0 +1,66 @@
+/* Design tokens - nguon duy nhat cho mau, chu, khoang cach. Component khong dung ma mau truc tiep. */
+:root {
+  /* Mau */
+  --c-ink: #111111;
+  --c-ink-2: #4a4a4a;
+  --c-muted: #767676;
+  --c-line: #e3e3e3;
+  --c-line-strong: #c9c9c9;
+  --c-surface: #f5f5f3;
+  --c-bg: #ffffff;
+  --c-accent: #c8102e;      /* chi dung: gia khuyen mai, nhan SALE, so tren icon gio, loi */
+  --c-accent-soft: #fbeaec;
+  --c-success: #1f7a4d;
+  --c-success-soft: #e8f3ed;
+  --c-warning: #b26b00;
+  --c-warning-soft: #fdf3e2;
+  --c-overlay: rgba(17, 17, 17, 0.45);
+
+  /* Chu */
+  --font-sans: 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --fs-display: 2.5rem;  --lh-display: 3rem;
+  --fs-h1: 1.75rem;      --lh-h1: 2.25rem;
+  --fs-h2: 1.25rem;      --lh-h2: 1.75rem;
+  --fs-body: 0.9375rem;  --lh-body: 1.5rem;
+  --fs-small: 0.8125rem; --lh-small: 1.25rem;
+  --fs-label: 0.75rem;   --lh-label: 1rem;
+  --tracking-label: 0.04em;
+
+  /* Khoang cach (thang 4px) */
+  --s-1: 4px;  --s-2: 8px;  --s-3: 12px; --s-4: 16px; --s-5: 24px;
+  --s-6: 32px; --s-7: 48px; --s-8: 64px; --s-9: 96px;
+
+  /* Bo cuc */
+  --container: 1280px;
+  --gutter: 16px;
+  --header-h: 64px;
+  --radius-control: 2px;
+  --touch: 44px;
+
+  /* Hieu ung */
+  --shadow-pop: 0 8px 24px rgba(0, 0, 0, 0.08);
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --t-fast: 150ms;
+  --t-base: 200ms;
+
+  /* Lop chong */
+  --z-header: 40;
+  --z-menu: 50;
+  --z-drawer: 60;
+  --z-dialog: 70;
+}
+
+@media (min-width: 640px) { :root { --gutter: 24px; } }
+@media (min-width: 1024px) { :root { --gutter: 40px; --header-h: 72px; } }
+
+@media (max-width: 639px) {
+  :root {
+    --fs-display: 1.75rem; --lh-display: 2.25rem;
+    --fs-h1: 1.375rem;     --lh-h1: 1.875rem;
+    --fs-h2: 1.125rem;     --lh-h2: 1.625rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --t-fast: 0ms; --t-base: 0ms; }
+}

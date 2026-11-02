@@ -1,0 +1,41 @@
+.header { position: sticky; top: 0; z-index: var(--z-header); background: var(--c-bg); }
+.announce { background: var(--c-ink); color: #fff; font-size: var(--fs-small); text-align: center; }
+.announce p { padding-block: var(--s-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bar { border-bottom: 1px solid var(--c-line); }
+.row { height: var(--header-h); display: flex; align-items: center; gap: var(--s-4); }
+.logo { font-weight: 700; font-size: 1.25rem; letter-spacing: 0.18em; padding: var(--s-2) 0; flex-shrink: 0; }
+.nav { display: none; align-items: stretch; height: 100%; gap: var(--s-1); min-width: 0; }
+.navLink {
+  display: inline-flex; align-items: center; gap: var(--s-1); height: 100%; padding: 0 var(--s-3);
+  font-size: var(--fs-small); font-weight: 500; white-space: nowrap; position: relative;
+}
+.navLink::after { content: ''; position: absolute; left: var(--s-3); right: var(--s-3); bottom: 0; height: 2px; background: var(--c-ink); transform: scaleX(0); transition: transform var(--t-fast) var(--ease); }
+.navLink:hover::after, .navLink[aria-expanded='true']::after, .active::after { transform: scaleX(1); }
+.megaWrap { position: static; height: 100%; display: flex; }
+.actions { margin-left: auto; display: flex; align-items: center; gap: var(--s-1); }
+.icon { width: var(--touch); height: var(--touch); display: grid; place-items: center; position: relative; }
+.icon:hover { background: var(--c-surface); }
+.search { position: relative; display: flex; align-items: center; }
+.search input {
+  width: 100%; height: 40px; padding: 0 var(--s-3) 0 36px; border: 1px solid var(--c-line); background: var(--c-surface);
+  border-radius: var(--radius-control); font-size: 1rem;
+}
+.search input:focus-visible { outline: 2px solid var(--c-ink); outline-offset: 0; background: var(--c-bg); }
+.searchIcon { position: absolute; left: 10px; color: var(--c-muted); pointer-events: none; }
+.mobileSearch { padding-bottom: var(--s-3); }
+.onlyDesktop { display: none; }
+
+@media (min-width: 1024px) {
+  .onlyMobile, .mobileSearch { display: none; }
+  .nav { display: flex; }
+  .onlyDesktop { display: block; width: 240px; }
+  .logo { margin-right: var(--s-4); }
+}
+@media (min-width: 1280px) { .onlyDesktop { width: 280px; } }
+/* 1024-1279px: chi giu nut "San pham" (mega menu) de khong tran ngang; >=1280px hien du 6 danh muc */
+.catLink { display: none; }
+@media (min-width: 1280px) { .catLink { display: inline-flex; } }
+.count {
+  position: absolute; top: 4px; right: 2px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px;
+  background: var(--c-accent); color: #fff; font-size: 11px; font-weight: 600; line-height: 18px; text-align: center;
+}

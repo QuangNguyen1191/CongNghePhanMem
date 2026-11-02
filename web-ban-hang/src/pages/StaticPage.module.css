@@ -1,0 +1,12 @@
+.page { padding-block: var(--s-5) var(--s-7); max-width: 880px; }
+.title { margin: var(--s-4) 0 var(--s-5); }
+.section { margin-top: var(--s-6); }
+.section h2 { margin-bottom: var(--s-3); }
+.section p, .section li { color: var(--c-ink-2); }
+.section ol, .section ul { list-style: disc; padding-left: 1.25rem; display: grid; gap: var(--s-2); }
+.tableWrap { overflow-x: auto; border: 1px solid var(--c-line); }
+.table { width: 100%; border-collapse: collapse; font-size: var(--fs-small); min-width: 480px; }
+.table th, .table td { padding: var(--s-3); text-align: left; border-bottom: 1px solid var(--c-line); }
+.table th { background: var(--c-surface); font-weight: 600; }
+.table tr:last-child td { border-bottom: 0; }
+.note { margin-top: var(--s-3); font-size: var(--fs-small); color: var(--c-muted); }

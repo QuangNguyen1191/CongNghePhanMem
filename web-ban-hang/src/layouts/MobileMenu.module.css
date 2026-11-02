@@ -1,0 +1,4 @@
+.heading { color: var(--c-muted); margin: var(--s-5) 0 var(--s-2); }
+.heading:first-child { margin-top: 0; }
+.item { display: flex; align-items: center; justify-content: space-between; min-height: 48px; border-bottom: 1px solid var(--c-line); }
+button.item { width: 100%; text-align: left; font: inherit; }

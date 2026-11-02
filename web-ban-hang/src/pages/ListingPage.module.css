@@ -1,0 +1,28 @@
+.page { padding-block: var(--s-5) var(--s-7); }
+.head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-4); flex-wrap: wrap; margin: var(--s-4) 0 var(--s-5); }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-6); }
+.sidebar { display: none; }
+.main { min-width: 0; }
+.toolbar { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); margin-bottom: var(--s-4); }
+.sort { display: flex; align-items: center; gap: var(--s-2); margin-left: auto; }
+.sort select {
+  min-height: 40px; padding: 0 var(--s-6) 0 var(--s-3); border: 1px solid var(--c-line-strong); border-radius: var(--radius-control);
+  background: var(--c-bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23111' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center;
+  appearance: none; font-size: var(--fs-small);
+}
+.chips { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2); margin-bottom: var(--s-5); }
+.chip { display: inline-flex; align-items: center; gap: var(--s-1); min-height: 32px; padding: 0 var(--s-3); background: var(--c-surface); font-size: var(--fs-small); }
+.chip:hover { background: var(--c-line); }
+.more { display: flex; flex-direction: column; align-items: center; gap: var(--s-3); margin-top: var(--s-7); }
+.drawerFoot { display: grid; grid-template-columns: 1fr 2fr; gap: var(--s-2); }
+
+@media (min-width: 1024px) {
+  .layout { grid-template-columns: 240px minmax(0, 1fr); gap: var(--s-7); }
+  .sidebar { display: block; position: sticky; top: calc(var(--header-h) + 56px); align-self: start; max-height: calc(100dvh - var(--header-h) - 72px); overflow-y: auto; padding-right: var(--s-2); }
+  .filterBtn { display: none; }
+}
+@media (max-width: 639px) {
+  .sort > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .sort { min-width: 0; }
+  .sort select { max-width: 100%; }
+}

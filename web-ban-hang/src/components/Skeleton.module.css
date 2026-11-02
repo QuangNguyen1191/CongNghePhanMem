@@ -1,0 +1,8 @@
+.sk { display: block; background: var(--c-surface); position: relative; overflow: hidden; }
+.sk::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.6), transparent);
+  transform: translateX(-100%); animation: luot 1.4s infinite;
+}
+@keyframes luot { to { transform: translateX(100%); } }
+@media (prefers-reduced-motion: reduce) { .sk::after { animation: none; } }

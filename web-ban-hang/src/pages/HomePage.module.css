@@ -1,0 +1,41 @@
+.home { display: flex; flex-direction: column; gap: var(--s-8); padding-bottom: var(--s-4); }
+.hero { background: var(--c-surface); }
+.heroInner { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-6); padding-block: var(--s-6); align-items: center; }
+.heroText { display: flex; flex-direction: column; gap: var(--s-4); order: 2; }
+.heroTitle { font-size: var(--fs-display); line-height: var(--lh-display); font-weight: 700; letter-spacing: -0.01em; max-width: 16ch; text-wrap: balance; }
+.heroDesc { color: var(--c-ink-2); max-width: 46ch; }
+.heroCta { display: flex; flex-wrap: wrap; gap: var(--s-3); margin-top: var(--s-2); }
+.heroMedia { order: 1; max-width: 440px; width: 100%; justify-self: center; }
+.heroMedia > a > div, .heroMedia > a > div > div { background: #e9e9e6; }
+.heroBlank { aspect-ratio: 3 / 4; background: var(--c-line); }
+
+.sectionHead { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-4); margin-bottom: var(--s-5); }
+.more { display: inline-flex; align-items: center; gap: var(--s-1); font-size: var(--fs-small); font-weight: 500; }
+.more:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+.cats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-5) var(--s-3); }
+.cat { display: flex; flex-direction: column; gap: var(--s-2); }
+.catName { font-weight: 600; }
+.cat:hover .catName { text-decoration: underline; text-underline-offset: 3px; }
+
+.brand { border-block: 1px solid var(--c-line); }
+.brandInner { padding-block: var(--s-8); display: flex; flex-direction: column; gap: var(--s-4); align-items: flex-start; }
+.brandTitle { font-size: var(--fs-h1); line-height: var(--lh-h1); font-weight: 700; max-width: 22ch; text-wrap: balance; }
+.brandDesc { color: var(--c-ink-2); max-width: 60ch; }
+
+.services { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-5); }
+.services li { display: flex; gap: var(--s-4); align-items: flex-start; }
+.svTitle { font-weight: 600; }
+
+@media (min-width: 640px) {
+  .services { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (min-width: 1024px) {
+  .home { gap: var(--s-9); }
+  .heroInner { grid-template-columns: 1.1fr 1fr; gap: var(--s-8); padding-block: var(--s-7); }
+  .heroText { order: 1; }
+  .heroMedia { order: 2; max-width: 460px; justify-self: end; }
+  .cats { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .brandInner { display: grid; grid-template-columns: 200px 1fr; column-gap: var(--s-7); }
+  .brandInner > p:first-child { grid-row: span 2; }
+}

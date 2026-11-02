@@ -1,0 +1,18 @@
+/* Dung chung cho cac trang co form: dang nhap, dang ky, tai khoan, thanh toan */
+.auth { padding-block: var(--s-7) var(--s-8); display: grid; justify-items: center; }
+.card { width: 100%; max-width: 440px; display: grid; gap: var(--s-5); }
+.cardWide { max-width: 640px; }
+.head { display: grid; gap: var(--s-2); text-align: center; }
+.form { display: grid; gap: var(--s-4); }
+.grid2 { display: grid; gap: var(--s-4); }
+@media (min-width: 640px) { .grid2 { grid-template-columns: 1fr 1fr; } }
+.alert { padding: var(--s-3) var(--s-4); background: var(--c-accent-soft); color: var(--c-accent); font-size: var(--fs-small); font-weight: 500; border-left: 3px solid var(--c-accent); }
+.info { padding: var(--s-3) var(--s-4); background: var(--c-surface); font-size: var(--fs-small); color: var(--c-ink-2); }
+.success { padding: var(--s-3) var(--s-4); background: var(--c-success-soft); color: var(--c-success); font-size: var(--fs-small); font-weight: 500; border-left: 3px solid var(--c-success); }
+.foot { text-align: center; font-size: var(--fs-small); color: var(--c-ink-2); }
+.pwWrap { position: relative; }
+.pwToggle { position: absolute; right: 0; top: 24px; height: var(--touch); width: var(--touch); display: grid; place-items: center; color: var(--c-muted); }
+.pwToggle:hover { color: var(--c-ink); }
+.pwWrap input { padding-right: var(--touch) !important; }
+.actions { display: flex; gap: var(--s-3); flex-wrap: wrap; align-items: center; }
+.divider { border: 0; border-top: 1px solid var(--c-line); margin: 0; }

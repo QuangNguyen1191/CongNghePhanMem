@@ -1,0 +1,8 @@
+.frame { position: relative; aspect-ratio: 3 / 4; background: var(--c-surface); overflow: hidden; }
+.img { width: 100%; height: 100%; object-fit: cover; }
+.fallback { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--s-2); padding: var(--s-4); text-align: center; }
+.mark { font-size: var(--fs-label); font-weight: 700; letter-spacing: 0.2em; color: var(--c-line-strong); }
+.name { font-size: var(--fs-small); color: var(--c-muted); max-width: 20ch; }
+.hover { position: absolute; inset: 0; opacity: 0; transition: opacity 250ms var(--ease); pointer-events: none; }
+@media (hover: hover) { :global(.hover-swap):hover .hover { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .hover { transition: none; } }

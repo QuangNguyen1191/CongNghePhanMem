@@ -1,0 +1,25 @@
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--s-2);
+  min-height: var(--touch); padding: 0 var(--s-5);
+  border: 1px solid transparent; border-radius: var(--radius-control);
+  font-size: var(--fs-small); font-weight: 600; letter-spacing: var(--tracking-label); text-transform: uppercase;
+  transition: background-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+  white-space: nowrap; user-select: none;
+}
+.lg { min-height: 52px; padding: 0 var(--s-6); font-size: var(--fs-body); }
+.block { display: flex; width: 100%; }
+.primary { background: var(--c-ink); color: #fff; }
+.primary:hover:not(:disabled) { background: #333; }
+.secondary { background: var(--c-bg); color: var(--c-ink); border-color: var(--c-ink); }
+.secondary:hover:not(:disabled) { background: var(--c-surface); }
+.ghost { background: transparent; color: var(--c-ink); }
+.ghost:hover:not(:disabled) { background: var(--c-surface); }
+.link { min-height: auto; padding: 0; text-transform: none; letter-spacing: 0; font-weight: 500; text-decoration: underline; text-underline-offset: 3px; }
+.btn:disabled { opacity: 0.45; }
+.btn[aria-busy] { opacity: 0.8; }
+.spinner {
+  width: 14px; height: 14px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%;
+  animation: quay 0.7s linear infinite;
+}
+@keyframes quay { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 2s; } }

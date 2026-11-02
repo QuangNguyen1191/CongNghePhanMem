@@ -1,0 +1,6 @@
+.price { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s-2); font-weight: 600; }
+.sm { font-size: var(--fs-body); }
+.lg { font-size: var(--fs-h2); line-height: var(--lh-h2); }
+.km { color: var(--c-accent); }
+.goc { color: var(--c-muted); font-weight: 400; font-size: 0.85em; }
+.tu { font-weight: 400; color: var(--c-ink-2); }

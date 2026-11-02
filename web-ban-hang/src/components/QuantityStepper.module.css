@@ -1,0 +1,6 @@
+.wrap { display: inline-flex; align-items: stretch; border: 1px solid var(--c-line-strong); height: var(--touch); }
+.btn { width: var(--touch); display: grid; place-items: center; }
+.btn:hover:not(:disabled) { background: var(--c-surface); }
+.btn:disabled { color: var(--c-line-strong); }
+.input { width: 48px; border: 0; border-inline: 1px solid var(--c-line); text-align: center; font-size: 1rem; -moz-appearance: textfield; }
+.input::-webkit-outer-spin-button, .input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }

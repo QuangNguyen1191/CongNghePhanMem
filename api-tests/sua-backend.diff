@@ -1,0 +1,414 @@
+diff -u -r -x bin -x obj /mnt/project-files/QL_BanThoiTrang/backend/BLL/BanHangBLL.cs backend/BLL/BanHangBLL.cs
+--- /mnt/project-files/QL_BanThoiTrang/backend/BLL/BanHangBLL.cs	2026-11-01 17:51:05.308349000 +0000
++++ backend/BLL/BanHangBLL.cs	2026-11-02 10:21:23.274090150 +0000
+@@ -25,6 +25,7 @@
+ 
+     public GioHangDTO Them(string maKh, string maSp, int soLuong)
+     {
++        QuyTac.KiemTra(soLuong > 0, "Số lượng phải lớn hơn 0");
+         var maGio = LayHoacTaoGio(maKh);
+         return DatSoLuong(maKh, maGio, maSp, _dal.SoLuongTrongGio(maGio, maSp) + soLuong);
+     }
+@@ -166,6 +167,7 @@
+             if (daTra) TichDiem.TinhLai(don.MaKh, tx);
+             return hd.MaHoaDon;
+         });
++        ThongKeBLL.XoaBoNhoDem();
+         return _hdDal.LayTheoMa(maHd)!;
+     }
+ 
+@@ -178,16 +180,26 @@
+             "Chỉ giao được đơn đã xác nhận");
+ 
+     // Giao thanh cong: don HOAN_TAT, hoa don COD chuyen sang da thanh toan, cong diem
+-    public void HoanTat(string maDon, string maNv) => DbHelper.GiaoDich(tx =>
++    public void HoanTat(string maDon, string maNv)
+     {
+-        QuyTac.KiemTra(_dal.DoiTrangThai(maDon, "DANG_GIAO", "HOAN_TAT", maNv, tx), "Chỉ hoàn tất được đơn đang giao");
+-        var hd = _hdDal.LayTheoDon(maDon, tx)!;
+-        _hdDal.DoiTrangThai(hd.MaHoaDon, "CHO_THANH_TOAN", "DA_THANH_TOAN", tx);
+-        TichDiem.TinhLai(hd.MaKh, tx);
+-    });
++        DbHelper.GiaoDich(tx =>
++        {
++            QuyTac.KiemTra(_dal.DoiTrangThai(maDon, "DANG_GIAO", "HOAN_TAT", maNv, tx), "Chỉ hoàn tất được đơn đang giao");
++            var hd = _hdDal.LayTheoDon(maDon, tx)!;
++            _hdDal.DoiTrangThai(hd.MaHoaDon, "CHO_THANH_TOAN", "DA_THANH_TOAN", tx);
++            TichDiem.TinhLai(hd.MaKh, tx);
++        });
++        ThongKeBLL.XoaBoNhoDem();
++    }
+ 
+     // Nhan vien huy don da xac nhan / dang giao (khach bom hang...): tra hang ve kho, huy hoa don
+-    public void NhanVienHuy(string maDon, string maNv) => DbHelper.GiaoDich(tx =>
++    public void NhanVienHuy(string maDon, string maNv)
++    {
++        DbHelper.GiaoDich(tx => HuyTrongGiaoDich(maDon, maNv, tx));
++        ThongKeBLL.XoaBoNhoDem();
++    }
++
++    private void HuyTrongGiaoDich(string maDon, string maNv, System.Data.IDbTransaction tx)
+     {
+         var don = QuyTac.CanCo(_dal.LayTheoMa(maDon, tx), "Không tìm thấy đơn hàng");
+         QuyTac.KiemTra(don.TrangThai is "CHO_XAC_NHAN" or "DA_XAC_NHAN" or "DANG_GIAO", "Đơn đã kết thúc, không hủy được");
+@@ -197,7 +209,7 @@
+         _hdDal.DoiTrangThai(hd.MaHoaDon, hd.TrangThai, "DA_HUY", tx);
+         foreach (var c in don.ChiTiets) _spDal.CapNhatTon(c.MaSp, c.SoLuong, tx);
+         TichDiem.TinhLai(hd.MaKh, tx);
+-    });
++    }
+ 
+     private string? TimMaKm(DonDatHangDTO don, System.Data.IDbTransaction tx) =>
+         don.MaVoucher != null
+@@ -240,6 +252,7 @@
+             TichDiem.TinhLai(maKh, tx);
+             return hd.MaHoaDon;
+         });
++        ThongKeBLL.XoaBoNhoDem();
+         return LayTheoMa(maHd);
+     }
+ 
+@@ -269,5 +282,6 @@
+             foreach (var c in hd.ChiTiets) _spDal.CapNhatTon(c.MaSp, c.SoLuong, tx);
+             TichDiem.TinhLai(hd.MaKh, tx);
+         });
++        ThongKeBLL.XoaBoNhoDem();
+     }
+ }
+diff -u -r -x bin -x obj /mnt/project-files/QL_BanThoiTrang/backend/BLL/ChungBLL.cs backend/BLL/ChungBLL.cs
+--- /mnt/project-files/QL_BanThoiTrang/backend/BLL/ChungBLL.cs	2026-11-01 17:51:05.562959000 +0000
++++ backend/BLL/ChungBLL.cs	2026-11-02 10:21:23.265194728 +0000
+@@ -34,6 +34,12 @@
+         if (!dieuKien) throw new LoiNghiepVu(thongBao);
+     }
+ 
++    // Cap nhat / xoa theo ma ma khong co dong nao bi anh huong -> 404 (khong phai 400)
++    public static void CanTimThay(bool timThay, string thongBao)
++    {
++        if (!timThay) throw new KhongTimThay(thongBao);
++    }
++
+     public static T CanCo<T>(T? doiTuong, string thongBao) where T : class =>
+         doiTuong ?? throw new KhongTimThay(thongBao);
+ 
+diff -u -r -x bin -x obj /mnt/project-files/QL_BanThoiTrang/backend/BLL/DanhMucBLL.cs backend/BLL/DanhMucBLL.cs
+--- /mnt/project-files/QL_BanThoiTrang/backend/BLL/DanhMucBLL.cs	2026-11-01 17:51:05.024744000 +0000
++++ backend/BLL/DanhMucBLL.cs	2026-11-02 10:21:23.266847986 +0000
+@@ -27,13 +27,13 @@
+         l.TenLoaiSp = l.TenLoaiSp.Trim();
+         QuyTac.KiemTra(l.TenLoaiSp.Length > 0, "Vui lòng nhập tên loại sản phẩm");
+         QuyTac.KiemTra(!_dal.TrungTen(l.TenLoaiSp, l.MaLoaiSp), "Tên loại sản phẩm đã tồn tại");
+-        QuyTac.KiemTra(_dal.Sua(l) == 1, "Không tìm thấy loại sản phẩm");
++        QuyTac.CanTimThay(_dal.Sua(l) == 1, "Không tìm thấy loại sản phẩm");
+     }
+ 
+     public void Xoa(string ma)
+     {
+         QuyTac.KiemTra(_dal.DemSanPham(ma) == 0, "Loại này còn sản phẩm, không xóa được");
+-        QuyTac.KiemTra(_dal.Xoa(ma) == 1, "Không tìm thấy loại sản phẩm");
++        QuyTac.CanTimThay(_dal.Xoa(ma) == 1, "Không tìm thấy loại sản phẩm");
+     }
+ }
+ 
+@@ -86,11 +86,11 @@
+     public void Sua(SanPhamDTO s)
+     {
+         KiemTra(s);
+-        QuyTac.KiemTra(_dal.Sua(s) == 1, "Không tìm thấy sản phẩm");
++        QuyTac.CanTimThay(_dal.Sua(s) == 1, "Không tìm thấy sản phẩm");
+     }
+ 
+     public void NgungBan(string ma, bool ngung) =>
+-        QuyTac.KiemTra(_dal.DoiTrangThai(ma, ngung ? "NGUNG_BAN" : "DANG_BAN") == 1, "Không tìm thấy sản phẩm");
++        QuyTac.CanTimThay(_dal.DoiTrangThai(ma, ngung ? "NGUNG_BAN" : "DANG_BAN") == 1, "Không tìm thấy sản phẩm");
+ 
+     private void KiemTra(SanPhamDTO s)
+     {
+@@ -124,14 +124,14 @@
+     public void Sua(NhaCungCapDTO n)
+     {
+         KiemTra(n);
+-        QuyTac.KiemTra(_dal.Sua(n) == 1, "Không tìm thấy nhà cung cấp");
++        QuyTac.CanTimThay(_dal.Sua(n) == 1, "Không tìm thấy nhà cung cấp");
+     }
+ 
+     // Da co phieu nhap thi chi chuyen sang ngung hop tac, khong xoa
+     public void Xoa(string ma)
+     {
+         QuyTac.KiemTra(!_dal.CoPhieuNhap(ma), "Nhà cung cấp đã có phiếu nhập, chỉ chuyển sang ngừng hợp tác được");
+-        QuyTac.KiemTra(_dal.Xoa(ma) == 1, "Không tìm thấy nhà cung cấp");
++        QuyTac.CanTimThay(_dal.Xoa(ma) == 1, "Không tìm thấy nhà cung cấp");
+     }
+ 
+     private static void KiemTra(NhaCungCapDTO n)
+diff -u -r -x bin -x obj /mnt/project-files/QL_BanThoiTrang/backend/BLL/ExcelBLL.cs backend/BLL/ExcelBLL.cs
+--- /mnt/project-files/QL_BanThoiTrang/backend/BLL/ExcelBLL.cs	2026-11-01 17:51:04.838785000 +0000
++++ backend/BLL/ExcelBLL.cs	2026-11-02 10:23:02.671069059 +0000
+@@ -103,7 +103,15 @@
+         TenSp = d.Chuoi(0, batBuoc: true)!, MaLoaiSp = d.Chuoi(1, batBuoc: true)!.ToUpper(), ChatLieu = d.Chuoi(2),
+         MoTa = d.Chuoi(3), DonGia = d.So(4, batBuoc: true)!.Value, KichCo = d.Chuoi(5)?.ToUpper(), MauSac = d.Chuoi(6),
+         HinhAnh = d.Chuoi(7), TrangThai = "DANG_BAN"
+-    }, s => QuyTac.KiemTra(s.DonGia > 0, "Đơn giá phải lớn hơn 0"));
++    }, s =>
++    {
++        QuyTac.KiemTra(s.DonGia > 0, "Đơn giá phải lớn hơn 0");
++        // bao loi ngay o buoc xem truoc, khong de toi luc ghi moi hong ca lo
++        QuyTac.KiemTra(_loaiSp.Value.Contains(s.MaLoaiSp), $"Không có loại sản phẩm {s.MaLoaiSp}");
++    });
++
++    private readonly Lazy<HashSet<string>> _loaiSp =
++        new(() => new LoaiSpBLL().LayTatCa().Select(l => l.MaLoaiSp).ToHashSet(StringComparer.OrdinalIgnoreCase));
+ 
+     public KetQuaDocExcelDTO<KhachHangDTO> DocKhachHang(Stream file) => Doc(file, CotKhachHang, d => new KhachHangDTO
+     {
+@@ -196,7 +204,10 @@
+         {
+             var ws = wb.Worksheets.First();
+             // Tim vi tri tung cot theo tieu de o dong 1 (khong phan biet hoa thuong, bo dau *)
+-            var tieuDe = ws.Row(1).CellsUsed().ToDictionary(c => ChuanHoa(c.GetString()), c => c.Address.ColumnNumber);
++            var cacO = ws.Row(1).CellsUsed().Select(c => (Ten: ChuanHoa(c.GetString()), Cot: c.Address.ColumnNumber)).Where(c => c.Ten.Length > 0).ToList();
++            var trung = cacO.GroupBy(c => c.Ten).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
++            QuyTac.KiemTra(trung.Count == 0, "File có cột tiêu đề bị trùng: " + string.Join(", ", trung));
++            var tieuDe = cacO.ToDictionary(c => c.Ten, c => c.Cot);
+             var viTri = cotCan.Select(c => tieuDe.TryGetValue(ChuanHoa(c), out var so) ? so : 0).ToArray();
+             var thieu = cotCan.Where((c, i) => viTri[i] == 0 && c.EndsWith('*')).ToList();
+             QuyTac.KiemTra(thieu.Count == 0, "File thiếu cột: " + string.Join(", ", thieu) + ". Hãy dùng file mẫu.");
+diff -u -r -x bin -x obj /mnt/project-files/QL_BanThoiTrang/backend/BLL/KhoBLL.cs backend/BLL/KhoBLL.cs
+--- /mnt/project-files/QL_BanThoiTrang/backend/BLL/KhoBLL.cs	2026-11-01 17:51:05.075980000 +0000
++++ backend/BLL/KhoBLL.cs	2026-11-02 10:21:23.274634815 +0000
+@@ -41,6 +41,7 @@
+             foreach (var d in p.ChiTiets) _spDal.CapNhatTon(d.MaSp, d.SoLuong, tx);
+             return p.MaPhieuNhap;
+         });
++        ThongKeBLL.XoaBoNhoDem();
+         return LayTheoMa(ma);
+     }
+ 
+@@ -136,6 +137,7 @@
+             QuyTac.KiemTra(_dal.DoiTrangThai(ma, dt.TrangThai, "HOAN_TAT", maNv, tienHoan,
+                 dt.Loai == "TRA" ? DateTime.Today : null, tx), "Phiếu vừa được người khác cập nhật");
+         });
++        ThongKeBLL.XoaBoNhoDem();
+         return LayTheoMa(ma);
+     }
+ }
+diff -u -r -x bin -x obj /mnt/project-files/QL_BanThoiTrang/backend/BLL/KhuyenMaiBLL.cs backend/BLL/KhuyenMaiBLL.cs
+--- /mnt/project-files/QL_BanThoiTrang/backend/BLL/KhuyenMaiBLL.cs	2026-11-01 17:51:05.781608000 +0000
++++ backend/BLL/KhuyenMaiBLL.cs	2026-11-02 10:21:23.268878222 +0000
+@@ -33,7 +33,12 @@
+         DbHelper.GiaoDich(tx => _dal.Sua(k, tx));
+     }
+ 
+-    public void KetThuc(string ma) => QuyTac.KiemTra(_dal.KetThuc(ma) == 1, "Không tìm thấy khuyến mãi");
++    // Ket thuc ngay: KM khong con ap dung tu hom nay. KM da het han tu truoc thi giu nguyen.
++    public void KetThuc(string ma)
++    {
++        LayTheoMa(ma);
++        _dal.KetThuc(ma, DateTime.Today.AddDays(-1));
++    }
+ 
+     private void KiemTra(KhuyenMaiDTO k)
+     {
+diff -u -r -x bin -x obj /mnt/project-files/QL_BanThoiTrang/backend/BLL/NhanSuBLL.cs backend/BLL/NhanSuBLL.cs
+--- /mnt/project-files/QL_BanThoiTrang/backend/BLL/NhanSuBLL.cs	2026-11-01 17:51:05.069434000 +0000
++++ backend/BLL/NhanSuBLL.cs	2026-11-02 10:22:00.576765164 +0000
+@@ -41,7 +41,7 @@
+     {
+         KiemTra(nv);
+         QuyTac.KiemTra(!_nvDal.TrungEmail(nv.Email, nv.MaNv), "Email đã được dùng cho nhân viên khác");
+-        QuyTac.KiemTra(_nvDal.Sua(nv) == 1, "Không tìm thấy nhân viên");
++        QuyTac.CanTimThay(_nvDal.Sua(nv) == 1, "Không tìm thấy nhân viên");
+     }
+ 
+     // Nghi viec: giu ho so (hoa don cu van tro toi), khoa tai khoan
+@@ -53,6 +53,7 @@
+             _nvDal.DoiTrangThai(maNv, "NGHI_VIEC", tx);
+             _tkDal.DoiTrangThai(nv.MaTk, "KHOA", tx);
+         });
++        TaiKhoanBLL.QuenTrangThai(nv.MaTk);
+     }
+ 
+     private static void KiemTra(NhanVienDTO nv)
+@@ -94,7 +95,7 @@
+         KiemTra(k);
+         var cung = k.Sdt == null ? null : _dal.LayTheoSdt(k.Sdt);
+         QuyTac.KiemTra(cung == null || cung.MaKh == k.MaKh, "Số điện thoại đã có khách hàng khác");
+-        QuyTac.KiemTra(_dal.Sua(k) == 1, "Không tìm thấy khách hàng");
++        QuyTac.CanTimThay(_dal.Sua(k) == 1, "Không tìm thấy khách hàng");
+     }
+ 
+     // Quan ly dieu chinh hang / diem bang tay
+@@ -102,7 +103,7 @@
+     {
+         QuyTac.KiemTra(hang is "DONG" or "BAC" or "VANG" or "KIM_CUONG", "Hạng thành viên không hợp lệ");
+         QuyTac.KiemTra(diem >= 0, "Điểm không được âm");
+-        QuyTac.KiemTra(_dal.SuaHangDiem(ma, hang, diem) == 1, "Không tìm thấy khách hàng");
++        QuyTac.CanTimThay(_dal.SuaHangDiem(ma, hang, diem) == 1, "Không tìm thấy khách hàng");
+     }
+ 
+     // Yeu cau 6 - HOP (UNION / OR): khach o tinh A hoac tinh B
+diff -u -r -x bin -x obj /mnt/project-files/QL_BanThoiTrang/backend/BLL/TaiKhoanBLL.cs backend/BLL/TaiKhoanBLL.cs
+--- /mnt/project-files/QL_BanThoiTrang/backend/BLL/TaiKhoanBLL.cs	2026-11-01 17:51:05.303475000 +0000
++++ backend/BLL/TaiKhoanBLL.cs	2026-11-02 10:22:00.576530257 +0000
+@@ -1,3 +1,4 @@
++using System.Collections.Concurrent;
+ using DAL;
+ using DTO;
+ 
+@@ -105,8 +106,27 @@
+     {
+         QuyTac.CanCo(_tkDal.LayTheoMa(maTk), "Không tìm thấy tài khoản");
+         _tkDal.DoiTrangThai(maTk, khoa ? "KHOA" : "HOAT_DONG");
++        QuenTrangThai(maTk);
+     }
+ 
++    // ---- Token JWT con han nhung tai khoan da bi khoa (hoac nhan vien nghi viec) thi khong duoc dung nua.
++    // Nho ket qua 30 giay de khong ton 1 cau SQL cho moi request; khoa / mo tren web thi co hieu luc ngay,
++    // khoa tu app admin (process khac) thi co hieu luc trong toi da 30 giay.
++    private static readonly ConcurrentDictionary<string, (bool HoatDong, DateTime LucKiem)> _trangThai = new();
++    public static TimeSpan ThoiGianNhoTrangThai { get; set; } = TimeSpan.FromSeconds(30);
++
++    public bool ConHoatDong(string maTk)
++    {
++        if (_trangThai.TryGetValue(maTk, out var x) && DateTime.Now - x.LucKiem < ThoiGianNhoTrangThai) return x.HoatDong;
++        bool hoatDong;
++        using (NhatKySql.TamNgungDem())
++            hoatDong = _tkDal.LayTheoMa(maTk)?.TrangThai == "HOAT_DONG";
++        _trangThai[maTk] = (hoatDong, DateTime.Now);
++        return hoatDong;
++    }
++
++    internal static void QuenTrangThai(string maTk) => _trangThai.TryRemove(maTk, out _);
++
+     public List<TaiKhoanDTO> LayTatCa()
+     {
+         var ds = _tkDal.LayTatCa();
+diff -u -r -x bin -x obj /mnt/project-files/QL_BanThoiTrang/backend/DAL/KhuyenMaiDAL.cs backend/DAL/KhuyenMaiDAL.cs
+--- /mnt/project-files/QL_BanThoiTrang/backend/DAL/KhuyenMaiDAL.cs	2026-11-01 17:51:04.298331000 +0000
++++ backend/DAL/KhuyenMaiDAL.cs	2026-11-02 10:21:23.270617455 +0000
+@@ -58,10 +58,11 @@
+     }
+ 
+     // Ket thuc som: dat ngay ket thuc la hom qua
+-    public int KetThuc(string ma) =>
+-        DbHelper.Execute(@"UPDATE KHUYEN_MAI SET ngay_kt = CASE WHEN ngay_bd > DATEADD(DAY, -1, CAST(GETDATE() AS date))
+-                THEN ngay_bd ELSE DATEADD(DAY, -1, CAST(GETDATE() AS date)) END
+-            WHERE ma_km = @ma", new { ma });
++    // ngay_kt = hom qua. KM chua bat dau / bat dau hom nay thi doi ca ngay_bd (CHECK ngay_kt >= ngay_bd)
++    public int KetThuc(string ma, DateTime homQua) =>
++        DbHelper.Execute(@"UPDATE KHUYEN_MAI SET ngay_kt = @homQua,
++                ngay_bd = CASE WHEN ngay_bd > @homQua THEN @homQua ELSE ngay_bd END
++            WHERE ma_km = @ma AND ngay_kt > @homQua", new { ma, homQua = homQua.Date });
+ 
+     public bool TrungVoucher(string maVoucher, string maKm) =>
+         DbHelper.ExecuteScalar<int>("SELECT COUNT(*) FROM CT_KM_VOUCHER WHERE ma_voucher = @maVoucher AND ma_km <> @maKm",
+diff -u -r -x bin -x obj /mnt/project-files/QL_BanThoiTrang/backend/DAL/NhatKySql.cs backend/DAL/NhatKySql.cs
+--- /mnt/project-files/QL_BanThoiTrang/backend/DAL/NhatKySql.cs	2026-11-01 17:51:04.164521000 +0000
++++ backend/DAL/NhatKySql.cs	2026-11-02 10:22:00.575807314 +0000
+@@ -38,6 +38,22 @@
+         return dem;
+     }
+ 
++    // Cau SQL ky thuat (vd kiem tra tai khoan con hoat dong moi request) van ghi nhat ky
++    // nhung khong tinh vao so cau SQL cua thao tac dang dem (header X-So-Cau-Sql)
++    public static IDisposable TamNgungDem()
++    {
++        var cu = _boDem.Value;
++        _boDem.Value = null;
++        return new KhoiPhuc(() => _boDem.Value = cu);
++    }
++
++    private sealed class KhoiPhuc : IDisposable
++    {
++        private readonly Action _lam;
++        public KhoiPhuc(Action lam) => _lam = lam;
++        public void Dispose() => _lam();
++    }
++
+     internal static void Ghi(NhatKySqlDTO dong)
+     {
+         Interlocked.Increment(ref _tongSoCau);
+diff -u -r -x bin -x obj /mnt/project-files/QL_BanThoiTrang/backend/WebApi/Controllers/BaoCaoController.cs backend/WebApi/Controllers/BaoCaoController.cs
+--- /mnt/project-files/QL_BanThoiTrang/backend/WebApi/Controllers/BaoCaoController.cs	2026-11-01 17:51:06.167117000 +0000
++++ backend/WebApi/Controllers/BaoCaoController.cs	2026-11-02 10:21:37.629066310 +0000
+@@ -17,8 +17,9 @@
+     [HttpPost("lam-moi")] public IActionResult LamMoi() { ThongKeBLL.XoaBoNhoDem(); return NoContent(); }
+ 
+     [HttpGet("tong-tien")]
+-    public IActionResult TongTien(DateTime tuNgay, DateTime denNgay, string cach = ThongKeBLL.TruyVanMoi, string dinhDang = "json") =>
+-        TraVe(_bll.TongTienKhoang(tuNgay, denNgay, cach), dinhDang);
++    public IActionResult TongTien(DateTime? tuNgay, DateTime? denNgay, string cach = ThongKeBLL.TruyVanMoi, string dinhDang = "json") =>
++        TraVe(_bll.TongTienKhoang(tuNgay ?? throw new LoiNghiepVu("Vui lòng chọn ngày bắt đầu (tuNgay)"),
++            denNgay ?? throw new LoiNghiepVu("Vui lòng chọn ngày kết thúc (denNgay)"), cach), dinhDang);
+ 
+     [HttpGet("thu-chi")]
+     public IActionResult ThuChi(string kieu = "THANG", int? nam = null, string cach = ThongKeBLL.TruyVanMoi, string dinhDang = "json") =>
+@@ -33,8 +34,8 @@
+         TraVe(_bll.TheoKhachHang(nam, cach), dinhDang);
+ 
+     [HttpGet("san-pham")]
+-    public IActionResult SanPham(int nam, string cach = ThongKeBLL.TruyVanMoi, string dinhDang = "json") =>
+-        TraVe(_bll.TheoSanPhamQuy(nam, cach), dinhDang);
++    public IActionResult SanPham(int? nam, string cach = ThongKeBLL.TruyVanMoi, string dinhDang = "json") =>
++        TraVe(_bll.TheoSanPhamQuy(nam ?? throw new LoiNghiepVu("Vui lòng chọn năm (nam)"), cach), dinhDang);
+ 
+     private IActionResult TraVe(BangThongKeDTO bang, string dinhDang) => dinhDang.ToLower() switch
+     {
+diff -u -r -x bin -x obj /mnt/project-files/QL_BanThoiTrang/backend/WebApi/HaTang/BoLocLoi.cs backend/WebApi/HaTang/BoLocLoi.cs
+--- /mnt/project-files/QL_BanThoiTrang/backend/WebApi/HaTang/BoLocLoi.cs	2026-11-01 17:51:06.666537000 +0000
++++ backend/WebApi/HaTang/BoLocLoi.cs	2026-11-02 10:21:37.629876385 +0000
+@@ -27,4 +27,14 @@
+         ctx.Result = new ObjectResult(new { thongBao }) { StatusCode = ma };
+         ctx.ExceptionHandled = true;
+     }
++
++    // Body / tham so sai kieu, thieu truong bat buoc: 400 { thongBao, loi: { truong: [..] } } thay cho ProblemDetails mac dinh
++    public static IActionResult LoiDuLieuGuiLen(ActionContext ctx)
++    {
++        var loi = ctx.ModelState.Where(m => m.Value?.Errors.Count > 0)
++            .ToDictionary(m => m.Key, m => m.Value!.Errors.Select(e => e.ErrorMessage).ToArray());
++        var cacTruong = string.Join(", ", loi.Keys.Where(k => k != "" && !k.StartsWith('$')).Select(k => k.TrimStart('$', '.')));
++        var thongBao = cacTruong.Length > 0 ? $"Dữ liệu gửi lên không hợp lệ: {cacTruong}" : "Dữ liệu gửi lên không hợp lệ";
++        return new BadRequestObjectResult(new { thongBao, loi });
++    }
+ }
+diff -u -r -x bin -x obj /mnt/project-files/QL_BanThoiTrang/backend/WebApi/Program.cs backend/WebApi/Program.cs
+--- /mnt/project-files/QL_BanThoiTrang/backend/WebApi/Program.cs	2026-11-01 17:51:06.452603000 +0000
++++ backend/WebApi/Program.cs	2026-11-02 10:22:00.576951620 +0000
+@@ -28,11 +28,22 @@
+         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Key)),
+         RoleClaimType = TenClaim.VaiTro, NameClaimType = TenClaim.TenDangNhap
+     };
++    // Tai khoan bi khoa / nhan vien nghi viec: token cu het hieu luc ngay (khong doi het 12 gio)
++    o.Events = new JwtBearerEvents
++    {
++        OnTokenValidated = ctx =>
++        {
++            var maTk = ctx.Principal?.FindFirst(TenClaim.MaTk)?.Value;
++            if (maTk == null || !new TaiKhoanBLL().ConHoatDong(maTk)) ctx.Fail("Tài khoản đã bị khóa");
++            return Task.CompletedTask;
++        }
++    };
+ });
+ builder.Services.AddAuthorization();
+ 
+ builder.Services.AddControllers(o => o.Filters.Add<BoLocLoi>())
+-    .AddJsonOptions(o => o.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase);
++    .AddJsonOptions(o => o.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase)
++    .ConfigureApiBehaviorOptions(o => o.InvalidModelStateResponseFactory = BoLocLoi.LoiDuLieuGuiLen);
+ 
+ // ---- 2 web (React) goi API tu cong khac
+ var cacNguon = cauHinh.GetSection("Cors:CacNguon").Get<string[]>() ?? new[] { "http://localhost:5173", "http://localhost:5174" };
+--- /mnt/project-files/QL_BanThoiTrang/database/KiemThu_QL_BanThoiTrang.sql	2026-10-29 12:49:06.591732000 +0000
++++ database/KiemThu_QL_BanThoiTrang.sql	2026-11-02 10:27:39.054532344 +0000
+@@ -62,7 +62,9 @@
+ SELECT 'A', N'Hóa đơn từ đơn online: cùng khách, đơn đã xác nhận',
+        CASE WHEN COUNT(*) = 0 THEN 'PASS' ELSE 'FAIL' END, CONCAT(COUNT(*), N' hóa đơn sai')
+ FROM HOA_DON h JOIN DON_DAT_HANG d ON d.ma_don = h.ma_don
+-WHERE h.ma_kh <> d.ma_kh OR d.trang_thai NOT IN ('DA_XAC_NHAN', 'DANG_GIAO', 'HOAN_TAT');
++WHERE h.ma_kh <> d.ma_kh
++   -- don bi nhan vien huy sau khi xac nhan thi hoa don cung DA_HUY: hop le
++   OR (d.trang_thai NOT IN ('DA_XAC_NHAN', 'DANG_GIAO', 'HOAN_TAT') AND NOT (d.trang_thai = 'DA_HUY' AND h.trang_thai = 'DA_HUY'));
+ 
+ -- A5. San pham doi/tra phai nam trong hoa don goc, khong vuot so luong da mua
+ INSERT #ket_qua (nhom, ten, ket_qua, ghi_chu)

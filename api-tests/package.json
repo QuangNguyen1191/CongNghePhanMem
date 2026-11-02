@@ -1,0 +1,17 @@
+{
+  "name": "ql-banthoitrang-api-tests",
+  "version": "1.0.0",
+  "description": "Kiem thu API backend QL_BanThoiTrang bang Playwright",
+  "scripts": {
+    "test": "playwright test",
+    "test:report": "playwright show-report"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "exceljs": "^4.4.0"
+  },
+  "private": true
+}

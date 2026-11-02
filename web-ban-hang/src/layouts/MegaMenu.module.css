@@ -1,0 +1,9 @@
+.panel { position: absolute; left: 0; right: 0; top: 100%; background: var(--c-bg); border-top: 1px solid var(--c-line); border-bottom: 1px solid var(--c-line); box-shadow: var(--shadow-pop); z-index: var(--z-menu); }
+.grid { display: grid; grid-template-columns: 1fr 1fr 1.4fr; gap: var(--s-7); padding-block: var(--s-6) var(--s-7); }
+.heading { color: var(--c-muted); margin-bottom: var(--s-3); }
+.list { display: flex; flex-direction: column; gap: var(--s-1); }
+.list a { display: inline-block; padding: var(--s-1) 0; }
+.list a:hover { text-decoration: underline; text-underline-offset: 4px; }
+.promo { background: var(--c-surface); padding: var(--s-5); }
+.kmList { display: flex; flex-direction: column; gap: var(--s-3); }
+.kmName { font-weight: 600; }
