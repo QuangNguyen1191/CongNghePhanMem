@@ -9,6 +9,8 @@ export interface DangKyYeuCau {
   tenDangNhap: string;
   matKhau: string;
   khachHang: Partial<KhachHang> & { hoTen: string };
+  /** v3: token phien OTP chung minh SDT la cua nguoi dang ky (bat buoc) */
+  phienXacThuc: string;
 }
 
 export interface YeuCauDoiTra {
@@ -54,6 +56,8 @@ export const donHangApi = {
   cuaToi: () => api.get<DonDatHang[]>('/api/don-hang/cua-toi'),
   layTheoMa: (m: string) => api.get<DonDatHang>(`/api/don-hang/${ma(m)}`),
   huy: (m: string) => api.post<void>(`/api/don-hang/${ma(m)}/khach-huy`),
+  /** v3: cho xac nhan -> huy ngay; da xac nhan -> gui yeu cau cho cua hang duyet */
+  yeuCauHuy: (m: string, lyDo: string) => api.post<DonDatHang>(`/api/don-hang/${ma(m)}/yeu-cau-huy`, { lyDo }),
   pdf: (m: string) => api.taiFile(`/api/don-hang/${ma(m)}/pdf`),
 };
 

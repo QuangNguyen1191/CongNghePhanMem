@@ -1,4 +1,4 @@
-"""Sinh file QL_BanThoiTrang_DuLieuMau.sql (du lieu mau cho CSDL v2).
+"""Sinh file QL_BanThoiTrang_DuLieuMau.sql (du lieu mau cho CSDL v3).
 
 Chay:  python3 gen_dulieumau.py > ../QL_BanThoiTrang_DuLieuMau.sql
 Dung random.seed co dinh nen moi lan chay ra cung 1 bo du lieu.
@@ -119,7 +119,10 @@ km = [("KM01", "Giảm giá mùa hè 2025", "SAN_PHAM", None, date(2025, 6, 1), 
       ("KM02", "Hóa đơn từ 1 triệu giảm 5%", "HOA_DON", None, date(2024, 1, 1), date(2026, 12, 31)),
       ("KM03", "Voucher khách hàng mới", "VOUCHER", None, date(2024, 1, 1), date(2026, 12, 31)),
       ("KM04", "Ngày hội Black Friday 2025", "SAN_PHAM", 20.0, date(2025, 11, 28), date(2025, 11, 30)),
-      ("KM05", "Ưu đãi giới hạn thu đông 2026", "SAN_PHAM", None, date(2026, 10, 20), date(2026, 12, 31))]
+      ("KM05", "Ưu đãi giới hạn thu đông 2026", "SAN_PHAM", None, date(2026, 10, 20), date(2026, 12, 31)),
+      # v3: tao tai khoan duoc giam 10% cho 3 don dau, toi da 100.000d / don
+      ("KM06", "Ưu đãi thành viên mới", "THANH_VIEN_MOI", 10.0, date(2026, 1, 1), date(2027, 12, 31))]
+km_tvm = [("KM06", 3, 10.0, 100000.0)]
 km_sp = []
 # KM01 (da ket thuc): ao thun + vay mua he. SP001 phai co trong KM01 (KiemThu_QL_BanThoiTrang.sql dung)
 for ten, p in [("Áo Thun Mini", 10.0), ("AIRism Cotton Áo Thun Cổ Tròn", 10.0), ("Chân Váy Xếp Ly Vải Nylon", 15.0)]:
@@ -317,6 +320,52 @@ ct_gio = [("GH001", skus("Áo Sơ Mi Vải Linen Cao Cấp", "Be")[1]["ma"], 1),
           ("GH003", skus("Áo Khoác Vải Cotton Canvas", "Đen")[2]["ma"], 1),
           ("GH003", skus("Quần Jeans Baggy Ống Cong Barrel", "Xanh Dương")[1]["ma"], 1)]
 
+# ------------------------------------------- v3: khach vang lai dat tren web
+# Them SAU mo phong (khong dung random) nen khong lam doi phan du lieu phia tren.
+#   KH021: da mua vang lai 1 don (hoan tat) + 1 don dang cho xac nhan -> demo tra cuu don, dang ky gan don cu
+#   KH022: 2 don da xac nhan nhung khong nhan hang (bom hang) + 1 don COD dang cho -> demo canh bao rui ro o web staff
+kh_vl = [dict(ma="KH021", tk=None, user=None, ten="Đặng Thu Trang", sdt="0987000021", email="trang.dt.demo@gmail.com",
+              sinh=None, tinh="TP Hồ Chí Minh", dia_chi="88 Phan Xích Long, Phú Nhuận, TP Hồ Chí Minh", tong=0.0),
+         dict(ma="KH022", tk=None, user=None, ten="Ngô Bảo Long", sdt="0987000022", email=None,
+              sinh=None, tinh="Hà Nội", dia_chi="15 Bà Triệu, Hai Bà Trưng, Hà Nội", tong=0.0)]
+kh.extend(kh_vl)
+don_vl, ct_don_vl = [], []
+
+
+def don_vang_lai(k, ngay_dat, trang, pttt, gio, ma_nv=None):
+    ma_don = next_id("DH")
+    d0 = ngay_dat.date()
+    tam = sum(gia_ban(s, d0)[0] * sl for s, sl in gio)
+    giam, mkm = ap_km_hoa_don(tam, d0)
+    if mkm is None:
+        mkm = next((gia_ban(s, d0)[1] for s, _ in gio if gia_ban(s, d0)[1]), None)
+    don_vl.append([ma_don, k["ma"], ma_nv, ngay_dat, trang, k["dia_chi"], k["sdt"], pttt, None, tam - giam, k["ten"],
+                   giam, "VANG_LAI", k["email"], mkm])
+    for s, sl in gio:
+        g, _ = gia_ban(s, d0)
+        ct_don_vl.append((ma_don, s["ma"], sl, g, g * sl))
+    if trang in ("HOAN_TAT", "DA_HUY"):  # da duoc nhan vien xac nhan -> co hoa don
+        trang_hd = "DA_THANH_TOAN" if trang == "HOAN_TAT" else "DA_HUY"
+        lap_hoa_don(d0 + timedelta(days=1), gio, ma_nv, k["ma"], pttt, ma_don=ma_don, trang_thai=trang_hd)
+    return ma_don
+
+
+def sku_con(ten, mau=None):
+    return next(s for s in skus(ten, mau) if s["ton"] >= 2 and s["ma"] not in sp_ngung)
+
+
+trang, long_ = kh_vl
+don_vang_lai(trang, datetime(2026, 9, 12, 20, 30), "HOAN_TAT", "COD",
+             [(sku_con("Áo Sơ Mi Vải Linen Cao Cấp"), 1), (sku_con("Chân Váy Satin"), 1)], "NV006")
+don_vang_lai(trang, datetime(2026, 10, 28, 9, 15), "CHO_XAC_NHAN", "CHUYEN_KHOAN",
+             [(sku_con("AIRism Cotton Áo Thun Cổ Tròn"), 2)])
+don_vang_lai(long_, datetime(2026, 8, 2, 21, 5), "DA_HUY", "COD",
+             [(sku_con("Áo Khoác Vải Cotton Canvas"), 1)], "NV006")
+don_vang_lai(long_, datetime(2026, 9, 20, 22, 40), "DA_HUY", "COD",
+             [(sku_con("Quần Jeans Baggy Ống Cong Barrel"), 1), (sku_con("Áo Thun Dáng Boxy Ngắn"), 2)], "NV006")
+don_vang_lai(long_, datetime(2026, 10, 28, 7, 50), "CHO_XAC_NHAN", "COD",
+             [(sku_con("Áo Khoác Vải Cotton Canvas"), 2)])
+
 # ------------------------------------------------------- hang thanh vien, diem
 for k in kh:
     k["diem"] = int(k["tong"] // 10000)          # 10.000d = 1 diem
@@ -326,13 +375,14 @@ for k in kh:
 # ------------------------------------------------------------------- xuat SQL
 assert all(s["ton"] >= 0 for s in sp), "ton kho am"
 out.insert(0, f"""/* =====================================================================
-   DU LIEU MAU cho CSDL QL_BanThoiTrang v2  (sinh tu tools/gen_dulieumau.py)
-   Chay SAU QL_BanThoiTrang_v2.sql (hoac goc + BoSung_v2), tren CSDL con trong.
+   DU LIEU MAU cho CSDL QL_BanThoiTrang v3  (sinh tu tools/gen_dulieumau.py)
+   Chay SAU QL_BanThoiTrang_v3.sql (hoac v2 + BoSung_v3), tren CSDL con trong.
    Khoang thoi gian: {START:%d/%m/%Y} - {END:%d/%m/%Y}
    Mat khau moi tai khoan: 123456 (luu dang BCrypt hash)
      giamdoc, quanly   -> ADMIN (app desktop admin)
      thungan1, thungan2, thukho, banhangonline -> NHAN_VIEN (web staff)
      khach01 .. khach15 -> KHACH_HANG (web ban hang); KH016-KH020 khach tai quay, khong co TK
+     KH021, KH022: khach vang lai dat tren web (SDT 0987000021, 0987000022), khong co TK
    Quy uoc diem: 10.000d tren hoa don da thanh toan = 1 diem.
    Hang: < 3tr DONG, 3-8tr BAC, 8-15tr VANG, >= 15tr KIM_CUONG.
    So luong: {len(sp)} SP, {len(kh)} KH, {len(nv)} NV, {len(phieu_nhap)} phieu nhap, {len(don)} don dat hang,
@@ -361,17 +411,26 @@ insert("NHAN_VIEN", ["ma_nv", "ma_tk", "ho_ten", "chuc_vu", "ngay_vao_lam", "luo
 insert("KHACH_HANG", ["ma_kh", "ma_tk", "ho_ten", "sdt", "email", "ngay_sinh", "hang_thanh_vien", "diem_tich_luy",
                       "dia_chi", "tinh_thanh"],
        [(k["ma"], k["tk"], k["ten"], k["sdt"], k["email"], k["sinh"], k["hang"], k["diem"], k["dia_chi"], k["tinh"])
-        for k in kh])
+        for k in kh if k not in kh_vl])
+insert("KHACH_HANG", ["ma_kh", "ma_tk", "ho_ten", "sdt", "email", "ngay_sinh", "hang_thanh_vien", "diem_tich_luy",
+                      "dia_chi", "tinh_thanh", "sdt_da_xac_thuc"],
+       [(k["ma"], k["tk"], k["ten"], k["sdt"], k["email"], k["sinh"], k["hang"], k["diem"], k["dia_chi"], k["tinh"], True)
+        for k in kh_vl])
 insert("NHA_CUNG_CAP", ["ma_ncc", "ten_ncc", "dia_chi", "sdt", "email", "ma_so_thue", "trang_thai"], ncc)
 insert("KHUYEN_MAI", ["ma_km", "ten_km", "hinh_thuc", "phan_tram_giam_gia", "ngay_bd", "ngay_kt"], km)
 insert("CT_KM_VOUCHER", ["ma_km", "ma_voucher", "phan_tram_giam_gia"], voucher)
 insert("CT_KM_HOA_DON", ["ma_km", "muc_ap_dung_hoa_don", "phan_tram_giam_gia"], km_hd)
 insert("CT_KM_SAN_PHAM", ["ma_km", "ma_sp", "phan_tram_giam_gia"], km_sp)
+insert("CT_KM_THANH_VIEN_MOI", ["ma_km", "so_don_dau", "phan_tram_giam_gia", "giam_toi_da"], km_tvm)
 insert("GIO_HANG", ["ma_gio_hang", "ma_kh", "ngay_cap_nhat"], gio_hang)
 insert("CHI_TIET_GIO_HANG", ["ma_gio_hang", "ma_sp", "so_luong"], ct_gio)
 insert("DON_DAT_HANG", ["ma_don", "ma_kh", "ma_nv", "ngay_dat", "trang_thai", "dia_chi_giao", "sdt_nhan",
                         "phuong_thuc_tt", "ma_voucher", "tong_tien", "ten_nguoi_nhan", "tien_giam"], don)
 insert("CHI_TIET_DON_DAT_HANG", ["ma_don", "ma_sp", "so_luong", "don_gia", "thanh_tien"], ct_don)
+insert("DON_DAT_HANG", ["ma_don", "ma_kh", "ma_nv", "ngay_dat", "trang_thai", "dia_chi_giao", "sdt_nhan",
+                        "phuong_thuc_tt", "ma_voucher", "tong_tien", "ten_nguoi_nhan", "tien_giam",
+                        "nguon", "email_nhan", "ma_km"], don_vl)
+insert("CHI_TIET_DON_DAT_HANG", ["ma_don", "ma_sp", "so_luong", "don_gia", "thanh_tien"], ct_don_vl)
 insert("HOA_DON", ["ma_hoa_don", "ma_don", "ma_kh", "ma_nv", "ngay_lap", "trang_thai", "ma_km", "tien_giam",
                    "phuong_thuc_tt", "tong_tien"], hoa_don)
 insert("CHI_TIET_HOA_DON", ["ma_hoa_don", "ma_sp", "so_luong", "don_gia_ban", "thanh_tien"], ct_hd)

@@ -52,6 +52,10 @@ public class KhachHangController : CoSoController
     [Authorize(Roles = VaiTro.NhanVienHoacAdmin), HttpPost]
     public KhachHangDTO ThemTaiQuay(KhachHangDTO k) => _bll.ThemTaiQuay(k);
 
+    // v3: lich su / muc rui ro cua 1 SDT, xem truoc khi xac nhan don (nhat la don khach vang lai)
+    [Authorize(Roles = VaiTro.NhanVienHoacAdmin), HttpGet("rui-ro/{sdt}")]
+    public RuiRoKhachDTO RuiRo(string sdt, [FromQuery] string? maKh = null) => _bll.RuiRo(sdt, maKh);
+
     [Authorize(Roles = VaiTro.NhanVienHoacAdmin), HttpPut("{ma}")]
     public IActionResult Sua(string ma, KhachHangDTO k) { k.MaKh = ma; _bll.Sua(k); return NoContent(); }
 

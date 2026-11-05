@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useLoaiSp } from '../features/catalog/useCatalogMeta';
 import { cuaHang, quyTac } from '../config/cuaHang';
+import { SU_KIEN_MO_BANG } from '../features/phimTat/PhimTatToanCuc';
 import s from './Footer.module.css';
 
 export function Footer() {
@@ -27,7 +28,12 @@ export function Footer() {
           <ul className={s.list}>
             <li><Link to="/huong-dan-chon-size">Hướng dẫn chọn size</Link></li>
             <li><Link to="/chinh-sach-doi-tra">Chính sách đổi trả</Link></li>
-            <li><Link to="/tai-khoan/don-hang">Tra cứu đơn hàng</Link></li>
+            <li><Link to="/tra-cuu-don">Tra cứu đơn hàng</Link></li>
+            <li>
+              <button type="button" className={s.linkBtn} onClick={() => window.dispatchEvent(new Event(SU_KIEN_MO_BANG))}>
+                Phím tắt bàn phím <kbd className={s.kbd}>?</kbd>
+              </button>
+            </li>
           </ul>
         </section>
         <section>

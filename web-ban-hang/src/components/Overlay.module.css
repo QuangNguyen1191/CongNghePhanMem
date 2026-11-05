@@ -22,3 +22,4 @@
 .confirmActions { display: flex; justify-content: flex-end; gap: var(--s-2); margin-top: var(--s-3); flex-wrap: wrap; }
 .danger { background: var(--c-accent); }
 .danger:hover:not(:disabled) { background: #a50d26; }
+.info { width: min(560px, calc(100% - 32px)); }

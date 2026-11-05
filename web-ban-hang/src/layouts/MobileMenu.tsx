@@ -39,6 +39,7 @@ export function MobileMenu({ open, onClose, loaiSps, daDangNhap }: Props) {
           </>
         )}
         <Muc to="/gio-hang">Giỏ hàng</Muc>
+        <Muc to="/tra-cuu-don">Tra cứu đơn hàng</Muc>
       </ul>
       <p className={`label ${s.heading}`}>Hỗ trợ</p>
       <ul>

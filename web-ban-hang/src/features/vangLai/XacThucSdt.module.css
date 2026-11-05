@@ -1,0 +1,19 @@
+.khung { display: grid; gap: var(--s-3); }
+.hang { display: grid; grid-template-columns: 1fr auto; gap: var(--s-3); align-items: start; }
+/* nut thang hang voi o nhap (o nhap co nhan phia tren cao ~24px) */
+.nut { margin-top: 24px; }
+.daXacThuc {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2) var(--s-3);
+  padding: var(--s-3) var(--s-4); background: var(--c-success-soft); color: var(--c-success);
+  font-size: var(--fs-small); font-weight: 500; border-left: 3px solid var(--c-success);
+}
+.daXacThuc strong { font-variant-numeric: tabular-nums; }
+.demo { padding: var(--s-2) var(--s-3); background: var(--c-surface); font-size: var(--fs-small); color: var(--c-ink-2); border: 1px dashed var(--c-line-strong); }
+.demo strong { font-size: 1.05em; letter-spacing: 0.15em; color: var(--c-ink); }
+.phu { display: flex; flex-wrap: wrap; gap: var(--s-3); font-size: var(--fs-small); color: var(--c-muted); }
+.linkNut { color: var(--c-ink); text-decoration: underline; text-underline-offset: 2px; }
+.linkNut:disabled { color: var(--c-muted); text-decoration: none; cursor: default; }
+@media (max-width: 420px) {
+  .hang { grid-template-columns: 1fr; }
+  .nut { margin-top: 0; }
+}

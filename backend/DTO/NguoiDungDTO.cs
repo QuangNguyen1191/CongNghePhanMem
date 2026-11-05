@@ -44,6 +44,7 @@ public class KhachHangDTO
     public int DiemTichLuy { get; set; }
     public string? DiaChi { get; set; }
     public string? TinhThanh { get; set; }
+    public bool SdtDaXacThuc { get; set; }         // v3: SDT da xac thuc bang OTP
 }
 
 // Thong tin dang nhap tra ve cho giao dien
@@ -57,6 +58,7 @@ public class PhienDangNhapDTO
     public string HoTen { get; set; } = "";
     public string? ChucVu { get; set; }
     public string? Token { get; set; }             // WebApi gan JWT vao day
+    public int? SoDonDaGan { get; set; }           // v3: dang ky xong, so don vang lai cu da gan vao tai khoan
 }
 
 // Noi dang nhap: moi vai tro chi vao dung phan mem cua minh

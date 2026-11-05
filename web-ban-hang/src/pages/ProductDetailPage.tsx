@@ -13,9 +13,9 @@ import { maMau, soSanhSize } from '../features/catalog/gomSanPham';
 import { useGiaKhuyenMai, useMauSanPham } from '../features/catalog/useSanPham';
 import { ProductGrid } from '../features/catalog/ProductGrid';
 import { docDaXem, ghiDaXem } from '../features/catalog/daXem';
-import { useThaoTacGio } from '../features/cart/useGioHang';
-import { useSession } from '../features/auth/useSession';
+import { useSoLuongGio, useThaoTacGio } from '../features/cart/useGioHang';
 import { quyTac } from '../config/cuaHang';
+import { usePhimTat } from '../features/phimTat/usePhimTat';
 import { useTitle } from '../lib/useTitle';
 import s from './ProductDetailPage.module.css';
 
@@ -24,6 +24,9 @@ function Gallery({ anhs, ten }: { anhs: string[]; ten: string }) {
   useEffect(() => setI(0), [anhs]);
   const n = anhs.length;
   const di = (b: number) => setI((x) => (x + b + n) % n);
+  // phim tat: mui ten trai / phai doi anh
+  usePhimTat('ArrowLeft', () => di(-1), n > 1);
+  usePhimTat('ArrowRight', () => di(1), n > 1);
   if (n === 0) return <ProductImage src={null} alt={ten} />;
   return (
     <div className={s.gallery}>
@@ -76,13 +79,13 @@ function DetailSkeleton() {
 export default function ProductDetailPage() {
   const { maSp = '' } = useParams();
   const navigate = useNavigate();
-  const phien = useSession();
   const spQ = useQuery({ queryKey: qk.sanPham(maSp), queryFn: () => sanPhamApi.layTheoMa(maSp), placeholderData: keepPreviousData });
   const btQ = useQuery({ queryKey: qk.bienThe(maSp), queryFn: () => sanPhamApi.layBienThe(maSp), placeholderData: keepPreviousData });
   const kmQ = useGiaKhuyenMai();
   const { data: boAnh } = useBoAnh();
   const tatCa = useMauSanPham();
   const { them } = useThaoTacGio();
+  const soLuongGio = useSoLuongGio();
 
   const sp = spQ.data;
   useTitle(sp?.tenSp);
@@ -160,13 +163,16 @@ export default function ProductDetailPage() {
       return; // loi da hien toast (MutationCache)
     }
     if (muaNgay) {
-      navigate(phien ? '/thanh-toan' : `/dang-nhap?tiep=${encodeURIComponent('/thanh-toan')}`);
+      navigate('/thanh-toan'); // v3: chua dang nhap van thanh toan duoc (trang thanh toan co nut Dang nhap)
       return;
     }
     toast.success(`Đã thêm vào giỏ: ${skuChon.tenSp} (${[skuChon.mauSac, skuChon.kichCo].filter(Boolean).join(', ')})`, {
       action: { label: 'Xem giỏ', onClick: () => navigate('/gio-hang') },
     });
   };
+
+  // phim tat 'a': them vao gio (bao loi neu chua chon size)
+  usePhimTat('a', () => { if (!them.isPending && bienThes.length > 0) themVaoGio(false); }, !!sp);
 
   if (spQ.isLoading || (btQ.isLoading && !btQ.data)) return <DetailSkeleton />;
   if (spQ.error) {
@@ -220,7 +226,7 @@ export default function ProductDetailPage() {
                           name="mau"
                           className="sr-only"
                           checked={m.ten === mau}
-                          onChange={() => chonBienThe(m.ten, size && timSku(m.ten, size) ? size : null)}
+                          onChange={() => chonBienThe(m.ten, size && (timSku(m.ten, size)?.soLuong ?? 0) > 0 ? size : null)}
                         />
                         <span className={s.dot} style={{ background: maMau(m.ten) }} aria-hidden />
                         <span className="sr-only">{m.ten}{!m.conHang ? ' (hết hàng)' : ''}</span>
@@ -247,7 +253,7 @@ export default function ProductDetailPage() {
                             name="size"
                             className="sr-only"
                             checked={k === size}
-                            disabled={!b}
+                            disabled={het} // size het hang: gach cheo, khong chon duoc
                             onChange={() => chonBienThe(mau ?? '', k)}
                           />
                           <span>{k}</span>
@@ -280,6 +286,10 @@ export default function ProductDetailPage() {
                   Mua ngay
                 </Button>
               </div>
+              {soLuongGio > 0 && (
+                <p className="small muted">Mua ngay sẽ thanh toán cùng {soLuongGio} sản phẩm đang có trong giỏ hàng.</p>
+              )}
+              <p className="small muted">Mẹo: phím <kbd>a</kbd> để thêm vào giỏ, <kbd>←</kbd> <kbd>→</kbd> để xem ảnh, <kbd>?</kbd> để xem mọi phím tắt.</p>
             </>
           )}
 

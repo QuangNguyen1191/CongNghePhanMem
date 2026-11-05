@@ -15,6 +15,9 @@ const DangNhapPage = lazy(() => import('../pages/DangNhapPage'));
 const DangKyPage = lazy(() => import('../pages/DangKyPage'));
 const CartPage = lazy(() => import('../pages/CartPage'));
 const CheckoutPage = lazy(() => import('../pages/CheckoutPage'));
+const DatHangThanhCongPage = lazy(() => import('../pages/DatHangThanhCongPage'));
+const TraCuuDonPage = lazy(() => import('../pages/TraCuuDonPage'));
+const TraCuuDonChiTietPage = lazy(() => import('../pages/TraCuuDonPage').then((m) => ({ default: m.TraCuuDonChiTietPage })));
 const AccountLayout = lazy(() => import('../pages/account/AccountLayout'));
 const HoSoPage = lazy(() => import('../pages/account/HoSoPage'));
 const DoiMatKhauPage = lazy(() => import('../pages/account/DoiMatKhauPage'));
@@ -38,7 +41,11 @@ export const router = createBrowserRouter([
       { path: '/dang-nhap', element: <DangNhapPage /> },
       { path: '/dang-ky', element: <DangKyPage /> },
       { path: '/gio-hang', element: <CartPage /> },
-      { path: '/thanh-toan', element: <RequireAuth><CheckoutPage /></RequireAuth> },
+      // v3: khach chua dang nhap van thanh toan duoc (xac thuc SDT bang OTP)
+      { path: '/thanh-toan', element: <CheckoutPage /> },
+      { path: '/dat-hang-thanh-cong/:ma', element: <DatHangThanhCongPage /> },
+      { path: '/tra-cuu-don', element: <TraCuuDonPage /> },
+      { path: '/tra-cuu-don/:ma', element: <TraCuuDonChiTietPage /> },
       {
         path: '/tai-khoan',
         element: <RequireAuth><AccountLayout /></RequireAuth>,
@@ -56,7 +63,8 @@ export const router = createBrowserRouter([
       },
       { path: '/huong-dan-chon-size', element: <HuongDanSizePage /> },
       { path: '/chinh-sach-doi-tra', element: <ChinhSachDoiTraPage /> },
-      { path: '/thiet-ke', element: <ThietKePage /> },                          // trang mau design system
+      // trang mau design system: chi co khi chay `npm run dev`, ban build nop bai khong co
+      ...(import.meta.env.DEV ? [{ path: '/thiet-ke', element: <ThietKePage /> }] : []),
       { path: '*', element: <NotFoundPage /> },
     ],
   },

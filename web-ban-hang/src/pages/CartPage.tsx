@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingBag, X } from 'lucide-react';
 import { Breadcrumb, Button, ButtonLink, ConfirmDialog, EmptyState, ErrorState, LoadingRegion, Price, ProductImage, QuantityStepper, Skeleton } from '../components';
 import { useGioHang, useThaoTacGio, type DongGio } from '../features/cart/useGioHang';
+import { DoiBienThe } from '../features/cart/DoiBienThe';
 import { useSession } from '../features/auth/useSession';
 import { nhanBienThe } from '../features/account/nhan';
 import { quyTac } from '../config/cuaHang';
@@ -20,6 +21,7 @@ function canhBao(d: DongGio) {
 
 function DongHangGio({ d }: { d: DongGio }) {
   const { capNhat, xoa } = useThaoTacGio();
+  const [moDoi, setMoDoi] = useState(false);
   const dangDoi = capNhat.isPending || xoa.isPending;
   const loi = canhBao(d);
   return (
@@ -29,7 +31,10 @@ function DongHangGio({ d }: { d: DongGio }) {
         <div className={s.top}>
           <div>
             <Link to={`/san-pham/${d.maSp}`} className={s.name}>{d.tenSp}</Link>
-            <p className={s.sub}>{nhanBienThe(d.mauSac, d.kichCo) || d.maSp}</p>
+            <p className={s.sub}>
+              {nhanBienThe(d.mauSac, d.kichCo) || d.maSp}
+              {d.conBan && <> · <button type="button" className={s.doi} onClick={() => setMoDoi(true)} disabled={dangDoi}>Đổi</button></>}
+            </p>
           </div>
           <button type="button" className={s.remove} onClick={() => xoa.mutate(d.maSp)} disabled={dangDoi} aria-label={`Xóa ${d.tenSp} khỏi giỏ`}><X size={18} aria-hidden /></button>
         </div>
@@ -50,6 +55,7 @@ function DongHangGio({ d }: { d: DongGio }) {
           <span className={`${s.lineTotal} num`}>{d.conBan ? formatTien(d.thanhTien) : '—'}</span>
         </div>
       </div>
+      {d.conBan && <DoiBienThe dong={d} open={moDoi} onClose={() => setMoDoi(false)} />}
     </li>
   );
 }
@@ -63,7 +69,7 @@ export default function CartPage() {
   const [hoiXoa, setHoiXoa] = useState(false);
   const tietKiem = gio.dongs.filter((d) => d.conBan).reduce((t, d) => t + (d.donGiaGoc - d.donGia) * d.soLuong, 0);
 
-  const thanhToan = () => navigate(phien ? '/thanh-toan' : `/dang-nhap?tiep=${encodeURIComponent('/thanh-toan')}`);
+  const thanhToan = () => navigate('/thanh-toan');
 
   return (
     <div className={`container ${s.page}`}>
@@ -92,8 +98,14 @@ export default function CartPage() {
               <div className={s.total}><span>Tổng</span><span className="num">{formatTien(gio.tamTinh)}</span></div>
               <p className={s.note}>Khuyến mãi theo hóa đơn và mã giảm giá được tính ở bước thanh toán.</p>
               {gio.coLoi && <p className={s.warn} role="alert">Vui lòng xử lý các sản phẩm được đánh dấu trước khi thanh toán.</p>}
-              <Button size="lg" block onClick={thanhToan} disabled={gio.coLoi}>{phien ? 'Thanh toán' : 'Đăng nhập để thanh toán'}</Button>
-              {!phien && <p className={s.note}>Giỏ hàng của bạn được giữ lại và tự gộp vào tài khoản sau khi đăng nhập. Chưa có tài khoản? <Link to={`/dang-ky?tiep=${encodeURIComponent('/thanh-toan')}`} className="link">Đăng ký</Link></p>}
+              {phien ? <Button size="lg" block onClick={thanhToan} disabled={gio.coLoi}>Thanh toán</Button> : (
+                <>
+                  {/* v3: 2 lua chon cho khach chua dang nhap */}
+                  <Button size="lg" block onClick={thanhToan} disabled={gio.coLoi}>Mua không cần tài khoản</Button>
+                  <Button size="lg" block variant="secondary" disabled={gio.coLoi} onClick={() => navigate(`/dang-nhap?tiep=${encodeURIComponent('/thanh-toan')}`)}>Đăng nhập để thanh toán</Button>
+                  <p className={s.note}>Mua không cần tài khoản: chỉ cần xác thực số điện thoại bằng mã OTP. Đăng nhập để tích điểm; giỏ hàng được giữ lại và tự gộp vào tài khoản. Chưa có tài khoản? <Link to={`/dang-ky?tiep=${encodeURIComponent('/thanh-toan')}`} className="link">Đăng ký</Link> để nhận ưu đãi thành viên mới.</p>
+                </>
+              )}
               <Link to="/san-pham" className="link small" style={{ justifySelf: 'center' }}>Tiếp tục mua sắm</Link>
             </aside>
           </div>

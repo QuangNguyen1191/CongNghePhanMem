@@ -10,6 +10,12 @@ export const kiemTra = {
     if (!t) return batBuoc ? 'Vui lòng nhập số điện thoại' : '';
     return /^\d{9,11}$/.test(t) ? '' : 'Số điện thoại gồm 9 đến 11 chữ số';
   },
+  /** v3: SDT nhan OTP: di dong Viet Nam 10 so (03/05/07/08/09), nhan ca +84 / co dau cach (giong QuyTac.LaSdtDiDong) */
+  sdtDiDong: (v: string) => {
+    const t = chuanHoaSdt(v);
+    if (!t) return 'Vui lòng nhập số điện thoại';
+    return /^0[35789]\d{8}$/.test(t) ? '' : 'Số điện thoại di động gồm 10 chữ số, bắt đầu bằng 03, 05, 07, 08 hoặc 09';
+  },
   email: (v: string) => (!v.trim() || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()) ? '' : 'Email không hợp lệ'),
   ngaySinh: (v: string) => {
     if (!v) return '';
@@ -18,6 +24,14 @@ export const kiemTra = {
     return d > new Date() ? 'Ngày sinh không được ở tương lai' : '';
   },
 };
+
+/** Bo dau cach / cham / gach, doi +84 / 84 thanh 0 (giong QuyTac.ChuanHoaSdt o backend) */
+export function chuanHoaSdt(v: string) {
+  let t = v.trim().replace(/[\s.\-()]/g, '');
+  if (t.startsWith('+84')) t = '0' + t.slice(3);
+  else if (t.startsWith('84') && t.length === 11) t = '0' + t.slice(2);
+  return t;
+}
 
 export type Loi<T> = Partial<Record<keyof T, string>>;
 export const coLoi = <T,>(l: Loi<T>) => Object.values(l).some(Boolean);

@@ -1,15 +1,16 @@
 /* =====================================================================
-   DU LIEU MAU cho CSDL QL_BanThoiTrang v2  (sinh tu tools/gen_dulieumau.py)
-   Chay SAU QL_BanThoiTrang_v2.sql (hoac goc + BoSung_v2), tren CSDL con trong.
+   DU LIEU MAU cho CSDL QL_BanThoiTrang v3  (sinh tu tools/gen_dulieumau.py)
+   Chay SAU QL_BanThoiTrang_v3.sql (hoac v2 + BoSung_v3), tren CSDL con trong.
    Khoang thoi gian: 02/01/2024 - 28/10/2026
    Mat khau moi tai khoan: 123456 (luu dang BCrypt hash)
      giamdoc, quanly   -> ADMIN (app desktop admin)
      thungan1, thungan2, thukho, banhangonline -> NHAN_VIEN (web staff)
      khach01 .. khach15 -> KHACH_HANG (web ban hang); KH016-KH020 khach tai quay, khong co TK
+     KH021, KH022: khach vang lai dat tren web (SDT 0987000021, 0987000022), khong co TK
    Quy uoc diem: 10.000d tren hoa don da thanh toan = 1 diem.
    Hang: < 3tr DONG, 3-8tr BAC, 8-15tr VANG, >= 15tr KIM_CUONG.
-   So luong: 195 SP, 20 KH, 6 NV, 6 phieu nhap, 70 don dat hang,
-             247 hoa don, 9 phieu doi tra
+   So luong: 195 SP, 22 KH, 6 NV, 6 phieu nhap, 70 don dat hang,
+             250 hoa don, 9 phieu doi tra
    ===================================================================== */
 USE QL_BanThoiTrang;
 GO
@@ -71,7 +72,7 @@ INSERT INTO SAN_PHAM (ma_sp, ten_sp, ma_loai_sp, chat_lieu, mo_ta, don_gia, so_l
   ('SP039', N'Áo Sơ Mi Vải Mềm Dễ Chăm Sóc', 'LSP02', N'57% Visco, 43% Polyeste (sợi tái chế)', N'Chống nhăn cả sau khi giặt, dễ bảo quản. *Giữ phom tốt sau khi giặt. Kiểu dáng rộng rãi với vai rủ và gấu áo suông thẳng, phù hợp để phối cùng quần ống rộng. Phù hợp để mặc ngoài. Mềm mại, mịn màng và dễ chịu.', 784000.00, 7, 'DANG_BAN', '/images/uniqlo/E486614-000/57-1.jpg', 'M', N'Xanh Ô Liu'),
   ('SP040', N'Áo Sơ Mi Vải Mềm Dễ Chăm Sóc', 'LSP02', N'57% Visco, 43% Polyeste (sợi tái chế)', N'Chống nhăn cả sau khi giặt, dễ bảo quản. *Giữ phom tốt sau khi giặt. Kiểu dáng rộng rãi với vai rủ và gấu áo suông thẳng, phù hợp để phối cùng quần ống rộng. Phù hợp để mặc ngoài. Mềm mại, mịn màng và dễ chịu.', 784000.00, 9, 'DANG_BAN', '/images/uniqlo/E486614-000/57-1.jpg', 'L', N'Xanh Ô Liu'),
   ('SP041', N'Áo Sơ Mi Vải Mềm Dễ Chăm Sóc', 'LSP02', N'57% Visco, 43% Polyeste (sợi tái chế)', N'Chống nhăn cả sau khi giặt, dễ bảo quản. *Giữ phom tốt sau khi giặt. Kiểu dáng rộng rãi với vai rủ và gấu áo suông thẳng, phù hợp để phối cùng quần ống rộng. Phù hợp để mặc ngoài. Mềm mại, mịn màng và dễ chịu.', 784000.00, 15, 'DANG_BAN', '/images/uniqlo/E486614-000/57-1.jpg', 'XL', N'Xanh Ô Liu'),
-  ('SP042', N'Áo Sơ Mi Vải Linen Cao Cấp', 'LSP02', '100% Lanh', N'Chất liệu linen 100% từ sợi lanh châu Âu cao cấp. Mang lại cảm giác mát mẻ, mềm mại cùng độ bóng tự nhiên tinh tế. Đa dạng màu sắc tươi sáng, mang đến điểm nhấn thời trang cho trang phục.', 784000.00, 5, 'DANG_BAN', '/images/uniqlo/E475647-000/00-1.jpg', 'S', N'Trắng'),
+  ('SP042', N'Áo Sơ Mi Vải Linen Cao Cấp', 'LSP02', '100% Lanh', N'Chất liệu linen 100% từ sợi lanh châu Âu cao cấp. Mang lại cảm giác mát mẻ, mềm mại cùng độ bóng tự nhiên tinh tế. Đa dạng màu sắc tươi sáng, mang đến điểm nhấn thời trang cho trang phục.', 784000.00, 4, 'DANG_BAN', '/images/uniqlo/E475647-000/00-1.jpg', 'S', N'Trắng'),
   ('SP043', N'Áo Sơ Mi Vải Linen Cao Cấp', 'LSP02', '100% Lanh', N'Chất liệu linen 100% từ sợi lanh châu Âu cao cấp. Mang lại cảm giác mát mẻ, mềm mại cùng độ bóng tự nhiên tinh tế. Đa dạng màu sắc tươi sáng, mang đến điểm nhấn thời trang cho trang phục.', 784000.00, 12, 'DANG_BAN', '/images/uniqlo/E475647-000/00-1.jpg', 'M', N'Trắng'),
   ('SP044', N'Áo Sơ Mi Vải Linen Cao Cấp', 'LSP02', '100% Lanh', N'Chất liệu linen 100% từ sợi lanh châu Âu cao cấp. Mang lại cảm giác mát mẻ, mềm mại cùng độ bóng tự nhiên tinh tế. Đa dạng màu sắc tươi sáng, mang đến điểm nhấn thời trang cho trang phục.', 784000.00, 11, 'DANG_BAN', '/images/uniqlo/E475647-000/00-1.jpg', 'L', N'Trắng'),
   ('SP045', N'Áo Sơ Mi Vải Linen Cao Cấp', 'LSP02', '100% Lanh', N'Chất liệu linen 100% từ sợi lanh châu Âu cao cấp. Mang lại cảm giác mát mẻ, mềm mại cùng độ bóng tự nhiên tinh tế. Đa dạng màu sắc tươi sáng, mang đến điểm nhấn thời trang cho trang phục.', 784000.00, 7, 'DANG_BAN', '/images/uniqlo/E475647-000/00-1.jpg', 'XL', N'Trắng'),
@@ -202,7 +203,7 @@ INSERT INTO SAN_PHAM (ma_sp, ten_sp, ma_loai_sp, chat_lieu, mo_ta, don_gia, so_l
   ('SP167', N'Quần Smart Pants', 'LSP05', '64% Polyeste, 28% Visco, 8% Elastan', N'Quần dáng ôm vừa vặn với thiết kế suông thẳng từ dưới đầu gối và chiều dài đến mắt cá chân, mang lại vẻ ngoài thanh lịch. Các nếp gấp ở giữa hai bên tạo nên vẻ ngoài chỉn chu từ mọi góc độ. Vải co giãn hai chiều, giúp cử động thoải mái.', 784000.00, 12, 'DANG_BAN', '/images/uniqlo/E487958-000/38-1.jpg', 'M', N'Nâu Đậm'),
   ('SP168', N'Quần Smart Pants', 'LSP05', '64% Polyeste, 28% Visco, 8% Elastan', N'Quần dáng ôm vừa vặn với thiết kế suông thẳng từ dưới đầu gối và chiều dài đến mắt cá chân, mang lại vẻ ngoài thanh lịch. Các nếp gấp ở giữa hai bên tạo nên vẻ ngoài chỉn chu từ mọi góc độ. Vải co giãn hai chiều, giúp cử động thoải mái.', 784000.00, 11, 'DANG_BAN', '/images/uniqlo/E487958-000/38-1.jpg', 'L', N'Nâu Đậm'),
   ('SP169', N'Quần Smart Pants', 'LSP05', '64% Polyeste, 28% Visco, 8% Elastan', N'Quần dáng ôm vừa vặn với thiết kế suông thẳng từ dưới đầu gối và chiều dài đến mắt cá chân, mang lại vẻ ngoài thanh lịch. Các nếp gấp ở giữa hai bên tạo nên vẻ ngoài chỉn chu từ mọi góc độ. Vải co giãn hai chiều, giúp cử động thoải mái.', 784000.00, 12, 'DANG_BAN', '/images/uniqlo/E487958-000/38-1.jpg', 'XL', N'Nâu Đậm'),
-  ('SP170', N'Chân Váy Satin', 'LSP06', N'100% Polyeste (vải satin)', N'Thiết kế đa năng với độ sáng bóng. Chất vải satin mềm mịn, dễ chịu. Có váy lót bên trong. Đường cắt chéo tạo độ vừa vặn tự nhiên. Phần thun co giãn giúp dễ thay đồ.', 784000.00, 7, 'DANG_BAN', '/images/uniqlo/E488345-000/09-1.jpg', 'XS', N'Đen'),
+  ('SP170', N'Chân Váy Satin', 'LSP06', N'100% Polyeste (vải satin)', N'Thiết kế đa năng với độ sáng bóng. Chất vải satin mềm mịn, dễ chịu. Có váy lót bên trong. Đường cắt chéo tạo độ vừa vặn tự nhiên. Phần thun co giãn giúp dễ thay đồ.', 784000.00, 6, 'DANG_BAN', '/images/uniqlo/E488345-000/09-1.jpg', 'XS', N'Đen'),
   ('SP171', N'Chân Váy Satin', 'LSP06', N'100% Polyeste (vải satin)', N'Thiết kế đa năng với độ sáng bóng. Chất vải satin mềm mịn, dễ chịu. Có váy lót bên trong. Đường cắt chéo tạo độ vừa vặn tự nhiên. Phần thun co giãn giúp dễ thay đồ.', 784000.00, 14, 'DANG_BAN', '/images/uniqlo/E488345-000/09-1.jpg', 'S', N'Đen'),
   ('SP172', N'Chân Váy Satin', 'LSP06', N'100% Polyeste (vải satin)', N'Thiết kế đa năng với độ sáng bóng. Chất vải satin mềm mịn, dễ chịu. Có váy lót bên trong. Đường cắt chéo tạo độ vừa vặn tự nhiên. Phần thun co giãn giúp dễ thay đồ.', 784000.00, 9, 'DANG_BAN', '/images/uniqlo/E488345-000/09-1.jpg', 'M', N'Đen'),
   ('SP173', N'Chân Váy Satin', 'LSP06', N'100% Polyeste (vải satin)', N'Thiết kế đa năng với độ sáng bóng. Chất vải satin mềm mịn, dễ chịu. Có váy lót bên trong. Đường cắt chéo tạo độ vừa vặn tự nhiên. Phần thun co giãn giúp dễ thay đồ.', 784000.00, 8, 'DANG_BAN', '/images/uniqlo/E488345-000/09-1.jpg', 'L', N'Đen'),
@@ -285,6 +286,11 @@ INSERT INTO KHACH_HANG (ma_kh, ma_tk, ho_ten, sdt, email, ngay_sinh, hang_thanh_
   ('KH019', NULL, N'Phan Hữu Vy', '0912142542', NULL, '1985-07-01', 'BAC', 321, N'136 30 Tháng 4, Ninh Kiều, Cần Thơ', N'Cần Thơ'),
   ('KH020', NULL, N'Vũ Thu Yến', '0912150461', NULL, '1986-08-04', 'VANG', 984, N'143 Lạch Tray, Ngô Quyền, Hải Phòng', N'Hải Phòng');
 
+-- KHACH_HANG: 2 dong
+INSERT INTO KHACH_HANG (ma_kh, ma_tk, ho_ten, sdt, email, ngay_sinh, hang_thanh_vien, diem_tich_luy, dia_chi, tinh_thanh, sdt_da_xac_thuc) VALUES
+  ('KH021', NULL, N'Đặng Thu Trang', '0987000021', 'trang.dt.demo@gmail.com', NULL, 'DONG', 148, N'88 Phan Xích Long, Phú Nhuận, TP Hồ Chí Minh', N'TP Hồ Chí Minh', 1),
+  ('KH022', NULL, N'Ngô Bảo Long', '0987000022', NULL, NULL, 'DONG', 0, N'15 Bà Triệu, Hai Bà Trưng, Hà Nội', N'Hà Nội', 1);
+
 -- NHA_CUNG_CAP: 4 dong
 INSERT INTO NHA_CUNG_CAP (ma_ncc, ten_ncc, dia_chi, sdt, email, ma_so_thue, trang_thai) VALUES
   ('NCC01', N'Công ty May mặc Việt Tiến', N'07 Lê Minh Xuân, Tân Bình, TP Hồ Chí Minh', '02838640800', 'lienhe@viettien-demo.vn', '0300401524', 'HOP_TAC'),
@@ -292,13 +298,14 @@ INSERT INTO NHA_CUNG_CAP (ma_ncc, ten_ncc, dia_chi, sdt, email, ma_so_thue, tran
   ('NCC03', N'Công ty Dệt may Thành Công', N'36 Tây Thạnh, Tân Phú, TP Hồ Chí Minh', '02838153962', 'sales@thanhcong-demo.vn', '0300398889', 'HOP_TAC'),
   ('NCC04', N'Công ty Thời trang Phương Đông', N'12 Nguyễn Văn Linh, Hải Châu, Đà Nẵng', '02363822111', NULL, NULL, 'NGUNG_HOP_TAC');
 
--- KHUYEN_MAI: 5 dong
+-- KHUYEN_MAI: 6 dong
 INSERT INTO KHUYEN_MAI (ma_km, ten_km, hinh_thuc, phan_tram_giam_gia, ngay_bd, ngay_kt) VALUES
   ('KM01', N'Giảm giá mùa hè 2025', 'SAN_PHAM', NULL, '2025-06-01', '2025-08-31'),
   ('KM02', N'Hóa đơn từ 1 triệu giảm 5%', 'HOA_DON', NULL, '2024-01-01', '2026-12-31'),
   ('KM03', N'Voucher khách hàng mới', 'VOUCHER', NULL, '2024-01-01', '2026-12-31'),
   ('KM04', N'Ngày hội Black Friday 2025', 'SAN_PHAM', 20.00, '2025-11-28', '2025-11-30'),
-  ('KM05', N'Ưu đãi giới hạn thu đông 2026', 'SAN_PHAM', NULL, '2026-10-20', '2026-12-31');
+  ('KM05', N'Ưu đãi giới hạn thu đông 2026', 'SAN_PHAM', NULL, '2026-10-20', '2026-12-31'),
+  ('KM06', N'Ưu đãi thành viên mới', 'THANH_VIEN_MOI', 10.00, '2026-01-01', '2027-12-31');
 
 -- CT_KM_VOUCHER: 2 dong
 INSERT INTO CT_KM_VOUCHER (ma_km, ma_voucher, phan_tram_giam_gia) VALUES
@@ -422,6 +429,10 @@ INSERT INTO CT_KM_SAN_PHAM (ma_km, ma_sp, phan_tram_giam_gia) VALUES
   ('KM05', 'SP175', 25.00),
   ('KM05', 'SP176', 25.00),
   ('KM05', 'SP177', 25.00);
+
+-- CT_KM_THANH_VIEN_MOI: 1 dong
+INSERT INTO CT_KM_THANH_VIEN_MOI (ma_km, so_don_dau, phan_tram_giam_gia, giam_toi_da) VALUES
+  ('KM06', 3, 10.00, 100000.00);
 
 -- GIO_HANG: 3 dong
 INSERT INTO GIO_HANG (ma_gio_hang, ma_kh, ngay_cap_nhat) VALUES
@@ -650,7 +661,25 @@ INSERT INTO CHI_TIET_DON_DAT_HANG (ma_don, ma_sp, so_luong, don_gia, thanh_tien)
   ('DH00070', 'SP042', 1, 784000.00, 784000.00),
   ('DH00070', 'SP002', 1, 293000.00, 293000.00);
 
--- HOA_DON: 247 dong
+-- DON_DAT_HANG: 5 dong
+INSERT INTO DON_DAT_HANG (ma_don, ma_kh, ma_nv, ngay_dat, trang_thai, dia_chi_giao, sdt_nhan, phuong_thuc_tt, ma_voucher, tong_tien, ten_nguoi_nhan, tien_giam, nguon, email_nhan, ma_km) VALUES
+  ('DH00071', 'KH021', 'NV006', '2026-09-12 20:30:00', 'HOAN_TAT', N'88 Phan Xích Long, Phú Nhuận, TP Hồ Chí Minh', '0987000021', 'COD', NULL, 1489600.00, N'Đặng Thu Trang', 78400.00, 'VANG_LAI', 'trang.dt.demo@gmail.com', 'KM02'),
+  ('DH00072', 'KH021', NULL, '2026-10-28 09:15:00', 'CHO_XAC_NHAN', N'88 Phan Xích Long, Phú Nhuận, TP Hồ Chí Minh', '0987000021', 'CHUYEN_KHOAN', NULL, 488000.00, N'Đặng Thu Trang', 0.00, 'VANG_LAI', 'trang.dt.demo@gmail.com', NULL),
+  ('DH00073', 'KH022', 'NV006', '2026-08-02 21:05:00', 'DA_HUY', N'15 Bà Triệu, Hai Bà Trưng, Hà Nội', '0987000022', 'COD', NULL, 1211250.00, N'Ngô Bảo Long', 63750.00, 'VANG_LAI', NULL, 'KM02'),
+  ('DH00074', 'KH022', 'NV006', '2026-09-20 22:40:00', 'DA_HUY', N'15 Bà Triệu, Hai Bà Trưng, Hà Nội', '0987000022', 'COD', NULL, 1487700.00, N'Ngô Bảo Long', 78300.00, 'VANG_LAI', NULL, 'KM02'),
+  ('DH00075', 'KH022', NULL, '2026-10-28 07:50:00', 'CHO_XAC_NHAN', N'15 Bà Triệu, Hai Bà Trưng, Hà Nội', '0987000022', 'COD', NULL, 1861934.00, N'Ngô Bảo Long', 97996.00, 'VANG_LAI', NULL, 'KM02');
+
+-- CHI_TIET_DON_DAT_HANG: 7 dong
+INSERT INTO CHI_TIET_DON_DAT_HANG (ma_don, ma_sp, so_luong, don_gia, thanh_tien) VALUES
+  ('DH00071', 'SP042', 1, 784000.00, 784000.00),
+  ('DH00071', 'SP170', 1, 784000.00, 784000.00),
+  ('DH00072', 'SP013', 2, 244000.00, 488000.00),
+  ('DH00073', 'SP066', 1, 1275000.00, 1275000.00),
+  ('DH00074', 'SP098', 1, 980000.00, 980000.00),
+  ('DH00074', 'SP025', 2, 293000.00, 586000.00),
+  ('DH00075', 'SP066', 2, 979965.00, 1959930.00);
+
+-- HOA_DON: 250 dong
 INSERT INTO HOA_DON (ma_hoa_don, ma_don, ma_kh, ma_nv, ngay_lap, trang_thai, ma_km, tien_giam, phuong_thuc_tt, tong_tien) VALUES
   ('HD00001', NULL, 'KH004', 'NV003', '2024-01-04', 'DA_THANH_TOAN', NULL, 0.00, 'TIEN_MAT', 588000.00),
   ('HD00002', NULL, 'KH005', 'NV003', '2024-01-07', 'DA_THANH_TOAN', 'KM02', 176300.00, 'TIEN_MAT', 3349700.00),
@@ -902,9 +931,12 @@ INSERT INTO HOA_DON (ma_hoa_don, ma_don, ma_kh, ma_nv, ngay_lap, trang_thai, ma_
   ('HD00244', 'DH00066', 'KH001', 'NV006', '2026-10-24', 'DA_THANH_TOAN', NULL, 0.00, 'ONLINE', 980000.00),
   ('HD00245', 'DH00067', 'KH012', 'NV002', '2026-10-25', 'CHO_THANH_TOAN', 'KM02', 61200.00, 'COD', 1162800.00),
   ('HD00246', 'DH00068', 'KH005', 'NV002', '2026-10-25', 'CHO_THANH_TOAN', 'KM02', 147000.00, 'COD', 2793000.00),
-  ('HD00247', NULL, 'KH013', 'NV003', '2026-10-27', 'DA_THANH_TOAN', 'KM02', 68600.00, 'CHUYEN_KHOAN', 1303400.00);
+  ('HD00247', NULL, 'KH013', 'NV003', '2026-10-27', 'DA_THANH_TOAN', 'KM02', 68600.00, 'CHUYEN_KHOAN', 1303400.00),
+  ('HD00248', 'DH00071', 'KH021', 'NV006', '2026-09-13', 'DA_THANH_TOAN', 'KM02', 78400.00, 'COD', 1489600.00),
+  ('HD00249', 'DH00073', 'KH022', 'NV006', '2026-08-03', 'DA_HUY', 'KM02', 63750.00, 'COD', 1211250.00),
+  ('HD00250', 'DH00074', 'KH022', 'NV006', '2026-09-21', 'DA_HUY', 'KM02', 78300.00, 'COD', 1487700.00);
 
--- CHI_TIET_HOA_DON: 493 dong
+-- CHI_TIET_HOA_DON: 498 dong
 INSERT INTO CHI_TIET_HOA_DON (ma_hoa_don, ma_sp, so_luong, don_gia_ban, thanh_tien) VALUES
   ('HD00001', 'SP078', 1, 588000.00, 588000.00),
   ('HD00002', 'SP099', 1, 980000.00, 980000.00),
@@ -1407,7 +1439,12 @@ INSERT INTO CHI_TIET_HOA_DON (ma_hoa_don, ma_sp, so_luong, don_gia_ban, thanh_ti
   ('HD00246', 'SP090', 1, 980000.00, 980000.00),
   ('HD00246', 'SP143', 2, 980000.00, 1960000.00),
   ('HD00247', 'SP163', 1, 588000.00, 588000.00),
-  ('HD00247', 'SP185', 1, 784000.00, 784000.00);
+  ('HD00247', 'SP185', 1, 784000.00, 784000.00),
+  ('HD00248', 'SP042', 1, 784000.00, 784000.00),
+  ('HD00248', 'SP170', 1, 784000.00, 784000.00),
+  ('HD00249', 'SP066', 1, 1275000.00, 1275000.00),
+  ('HD00250', 'SP098', 1, 980000.00, 980000.00),
+  ('HD00250', 'SP025', 2, 293000.00, 586000.00);
 
 -- DOI_TRA_HANG: 9 dong
 INSERT INTO DOI_TRA_HANG (ma_doi_tra, ma_hoa_don, ma_nv, loai, ly_do, ngay_doi_tra, trang_thai, tien_hoan, ngay_hoan) VALUES

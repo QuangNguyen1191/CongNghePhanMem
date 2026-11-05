@@ -5,7 +5,8 @@ export const MAT_KHAU = '123456';
 
 // Hau to duy nhat moi lan chay, de chay lai nhieu lan tren cung CSDL khong bi trung ten / email / SDT
 export const RUN = Date.now().toString().slice(-7);
-export const sdtMoi = (i: number) => `09${RUN}${String(i).padStart(2, '0')}`.slice(0, 11);
+// SDT di dong 10 so (09 + 6 so cuoi cua RUN + 2 so thu tu)
+export const sdtMoi = (i: number) => `09${RUN.slice(-6)}${String(i).padStart(2, '0')}`;
 
 type Noi = 'web-ban-hang' | 'web-staff' | 'app-admin';
 const tokenCache = new Map<string, string>();
@@ -61,4 +62,25 @@ export async function taoSanPhamCoTon(ad: APIRequestContext, soLuong = 50, donGi
   }));
   await ok(await ad.post('/api/phieu-nhap', { data: { maNcc: 'NCC01', chiTiets: [{ maSp: sp.maSp, soLuong, donGiaNhap: donGia / 2 }] } }));
   return sp as { maSp: string; tenSp: string; donGia: number };
+}
+
+// v3: xac thuc SDT bang OTP (backend chay o moi truong Development tra luon ma demo) -> token phien vang lai.
+// Nho token theo SDT (dung 30 phut) vi moi SDT chi gui duoc 1 ma / 60 giay.
+const phienCache = new Map<string, string>();
+export async function xacThucSdt(api: APIRequestContext, sdt: string, mucDich = 'DANG_KY'): Promise<string> {
+  if (phienCache.has(sdt)) return phienCache.get(sdt)!;
+  const gui = await ok(await api.post('/api/vang-lai/otp', { data: { sdt, mucDich } }));
+  expect(gui.maDemo, 'can bat Otp:HienMaDemo (chay WebApi o moi truong Development)').toMatch(/^\d{6}$/);
+  const phien = await ok(await api.post('/api/vang-lai/xac-thuc', { data: { sdt, ma: gui.maDemo } }));
+  phienCache.set(sdt, phien.token);
+  return phien.token as string;
+}
+
+// Dang ky khach (v3: bat buoc SDT da xac thuc OTP). Khong truyen SDT thi tu tao SDT moi.
+let soTuDong = 50;
+export async function dangKy(api: APIRequestContext,
+  data: { tenDangNhap: string; matKhau: string; khachHang: Record<string, unknown> }) {
+  const sdt = (data.khachHang.sdt as string | undefined) ?? sdtMoi(soTuDong++);
+  const phienXacThuc = await xacThucSdt(api, sdt);
+  return api.post('/api/tai-khoan/dang-ky', { data: { ...data, khachHang: { ...data.khachHang, sdt }, phienXacThuc } });
 }

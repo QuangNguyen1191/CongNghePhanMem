@@ -43,7 +43,43 @@ public class DonDatHangDTO
     public string? TenKhachHang { get; set; }
     public string? TenNhanVien { get; set; }
     public string? MaHoaDon { get; set; }
+    public string Nguon { get; set; } = "TAI_KHOAN";   // v3: TAI_KHOAN | VANG_LAI
+    public string? EmailNhan { get; set; }             // v3
+    public string? MaKm { get; set; }                  // v3: khuyen mai da ap dung luc dat
+    // v3: huy don / yeu cau huy (khach xin huy don da xac nhan, nhan vien duyet)
+    public string? YeuCauHuy { get; set; }             // null | CHO_DUYET | DA_DUYET | TU_CHOI
+    public string? LyDoHuy { get; set; }
+    public DateTime? NgayYeuCauHuy { get; set; }
+    public string? PhanHoiHuy { get; set; }            // ly do cua hang tu choi yeu cau huy
+    public DateTime? NgayHuy { get; set; }
+    public string? NguoiHuy { get; set; }              // KHACH | NHAN_VIEN
+    public string? TrangThaiHoanTien { get; set; }     // CHO_HOAN | DA_HOAN (don da tra truoc bi huy)
+    public decimal? SoTienHoan { get; set; }
     public List<ChiTietDonDatHangDTO> ChiTiets { get; set; } = new();
+}
+
+// Body chung cho cac thao tac can ly do (yeu cau huy, tu choi yeu cau huy, nhan vien huy, da hoan tien)
+public class LyDoDTO
+{
+    public string? LyDo { get; set; }
+}
+
+// v3: bang HOAN_TIEN - don da thanh toan truoc (chuyen khoan / online) bi huy thi phai hoan tien
+public class HoanTienDTO
+{
+    public string MaHoanTien { get; set; } = "";
+    public string MaDon { get; set; } = "";
+    public string MaHoaDon { get; set; } = "";
+    public decimal SoTien { get; set; }
+    public string PhuongThuc { get; set; } = "";
+    public string TrangThai { get; set; } = "CHO_HOAN";   // CHO_HOAN | DA_HOAN
+    public DateTime NgayTao { get; set; }
+    public DateTime? NgayHoan { get; set; }
+    public string? MaNv { get; set; }
+    public string? GhiChu { get; set; }
+    public string? TenKhachHang { get; set; }
+    public string? SdtNhan { get; set; }
+    public string? TenNhanVien { get; set; }
 }
 
 public class ChiTietDonDatHangDTO
@@ -123,4 +159,7 @@ public class BangTinhTienDTO
     public decimal TongTien { get; set; }
     public string? MaKm { get; set; }
     public string? GhiChuKm { get; set; }
+    // v3: muc giam tren ca don dang ap dung: VOUCHER | HOA_DON | THANH_VIEN_MOI | null (khong giam)
+    public string? LoaiGiam { get; set; }
+    public string? MaVoucher { get; set; }   // v3: voucher thuc su duoc ap dung (null neu uu dai khac co loi hon)
 }

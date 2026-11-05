@@ -1,10 +1,10 @@
 // Thong tin cua hang hien o footer / trang lien he. Nhom dien that vao day (de trong thi khong hien).
 export const cuaHang = {
   ten: 'UNIQLO',
-  diaChi: '',
-  hotline: '',
-  email: '',
-  gioMoCua: '',
+  diaChi: '120 Yên Lãng,Cao Bằng',
+  hotline: '0928374712',
+  email: 'uniqlo@gmail.com',
+  gioMoCua: '8:00-21:00',
 };
 
 // Quy tac nghiep vu lay tu backend (BLL/ChungBLL.cs > QuyTac), chi de hien thi cho khach.

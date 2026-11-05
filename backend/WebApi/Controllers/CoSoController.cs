@@ -13,6 +13,10 @@ public abstract class CoSoController : ControllerBase
     protected string MaNv => User.FindFirst(TenClaim.MaNv)?.Value ?? throw new LoiNghiepVu("Chỉ nhân viên mới làm được thao tác này");
     protected string MaKh => User.FindFirst(TenClaim.MaKh)?.Value ?? throw new LoiNghiepVu("Chỉ khách hàng mới làm được thao tác này");
     protected bool LaKhach => User.IsInRole(VaiTro.KhachHang);
+    // v3: SDT da xac thuc OTP cua khach vang lai
+    protected string SdtVangLai => User.FindFirst(TenClaim.Sdt)?.Value ?? throw new LoiNghiepVu("Vui lòng xác thực số điện thoại");
+    // Khach dang nhap (neu co) o cac API khong bat buoc dang nhap
+    protected string? MaKhNeuCo => LaKhach ? User.FindFirst(TenClaim.MaKh)?.Value : null;
 
     // Khach chi duoc xem chung tu cua chinh minh
     protected void ChiCuaMinh(string? maKhCuaChungTu)

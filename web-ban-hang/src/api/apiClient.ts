@@ -22,8 +22,12 @@ type Query = Record<string, string | number | boolean | null | undefined>;
 
 interface Tuy {
   query?: Query;
+  /** Ghi de token: dung cho API khach vang lai (token phien OTP, khong phai token dang nhap) */
+  token?: string | null;
   body?: unknown;
   signal?: AbortSignal;
+  /** goi khi token rieng bi 401 (phien OTP het han) */
+  khiHetHan?: () => void;
 }
 
 function taoUrl(duongDan: string, query?: Query) {
@@ -44,7 +48,8 @@ const THONG_BAO_MAC_DINH: Record<number, string> = {
 
 async function goi<T>(method: string, duongDan: string, tuy: Tuy = {}): Promise<T> {
   const headers: Record<string, string> = { Accept: 'application/json' };
-  const token = session.token();
+  const rieng = tuy.token !== undefined;
+  const token = rieng ? tuy.token : session.token();
   if (token) headers.Authorization = `Bearer ${token}`;
   if (tuy.body !== undefined) headers['Content-Type'] = 'application/json';
 
@@ -61,10 +66,14 @@ async function goi<T>(method: string, duongDan: string, tuy: Tuy = {}): Promise<
     throw new ApiError(0, 'Không kết nối được máy chủ. Vui lòng kiểm tra mạng và thử lại.');
   }
 
-  if (res.status === 401 && token) session.xoa(); // token het han / tai khoan bi khoa
+  if (res.status === 401 && token) {
+    if (rieng) tuy.khiHetHan?.(); else session.xoa(); // token het han / tai khoan bi khoa
+  }
 
   if (!res.ok) {
-    let thongBao = THONG_BAO_MAC_DINH[res.status] ?? 'Lỗi hệ thống, vui lòng thử lại.';
+    let thongBao = res.status === 401 && rieng
+      ? 'Phiên xác thực số điện thoại đã hết hạn, vui lòng nhận mã OTP mới.'
+      : THONG_BAO_MAC_DINH[res.status] ?? 'Lỗi hệ thống, vui lòng thử lại.';
     let loiTruong: Record<string, string[]> | undefined;
     try {
       const data = await res.json();
@@ -86,5 +95,5 @@ export const api = {
   put: <T>(d: string, body?: unknown, t?: Tuy) => goi<T>('PUT', d, { ...t, body }),
   del: <T>(d: string, t?: Tuy) => goi<T>('DELETE', d, t),
   /** Tai file (PDF) co kem token, tra ve Blob */
-  taiFile: (d: string) => goi<Blob>('GET', d),
+  taiFile: (d: string, t?: Tuy) => goi<Blob>('GET', d, t),
 };

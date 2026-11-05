@@ -86,3 +86,19 @@ export function ConfirmDialog({ open, title, description, confirmLabel = 'Đồn
     </dialog>
   );
 }
+
+/** Hop thoai chi de doc (vd bang phim tat): tieu de, noi dung, nut Dong. Esc / bam nen de dong. */
+export function InfoDialog({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: ReactNode }) {
+  const { ref, onClick } = useDialog(open, onClose);
+  return (
+    <dialog ref={ref} className={`${s.confirm} ${s.info}`} onClick={onClick} aria-labelledby="ttdl-tieu-de">
+      <div className={s.confirmBox}>
+        <h2 id="ttdl-tieu-de" className="h2">{title}</h2>
+        <div className={s.confirmDesc}>{children}</div>
+        <div className={s.confirmActions}>
+          <Button variant="secondary" onClick={() => ref.current?.close()} autoFocus>Đóng</Button>
+        </div>
+      </div>
+    </dialog>
+  );
+}

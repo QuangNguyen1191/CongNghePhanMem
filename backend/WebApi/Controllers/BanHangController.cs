@@ -14,8 +14,14 @@ public class KhuyenMaiController : CoSoController
     [HttpGet("dang-chay")] public List<KhuyenMaiDTO> DangChay() => _bll.LayDangChay();
 
     // Xem truoc tien phai tra (gio hang / ban tai quay) truoc khi chot
+    // v3: khach da dang nhap thi tinh ca uu dai thanh vien moi
     [HttpPost("tinh-tien")]
-    public BangTinhTienDTO TinhTien(BanTaiQuayDTO yc) => _bll.TinhTien(yc.DongHangs, DateTime.Today, yc.MaVoucher);
+    public BangTinhTienDTO TinhTien(BanTaiQuayDTO yc) =>
+        _bll.TinhTien(yc.DongHangs, DateTime.Today, yc.MaVoucher, maKhThanhVien: MaKhNeuCo);
+
+    // v3: chuong trinh uu dai thanh vien moi (de quang ba); khach da dang nhap thi kem so luot con lai. Khong co -> 204
+    [HttpGet("thanh-vien-moi")]
+    public UuDaiThanhVienMoiDTO? ThanhVienMoi() => _bll.LayUuDaiThanhVienMoi(MaKhNeuCo);
 
     [Authorize(Roles = VaiTro.Admin), HttpGet] public List<KhuyenMaiDTO> LayTatCa() => _bll.LayTatCa();
     [Authorize(Roles = VaiTro.Admin), HttpGet("{ma}")] public KhuyenMaiDTO LayTheoMa(string ma) => _bll.LayTheoMa(ma);
@@ -59,6 +65,10 @@ public class DonHangController : CoSoController
     [Authorize(Roles = VaiTro.KhachHang), HttpPost("{ma}/khach-huy")]
     public IActionResult KhachHuy(string ma) { _bll.KhachHuy(MaKh, ma); return NoContent(); }
 
+    // v3: huy ngay neu dang cho xac nhan; da xac nhan -> gui yeu cau cho nhan vien duyet
+    [Authorize(Roles = VaiTro.KhachHang), HttpPost("{ma}/yeu-cau-huy")]
+    public DonDatHangDTO YeuCauHuy(string ma, LyDoDTO yc) => _bll.YeuCauHuy(MaKh, ma, yc.LyDo);
+
     // ---- ca hai (khach chi xem don cua minh)
     [HttpGet("{ma}")]
     public DonDatHangDTO LayTheoMa(string ma)
@@ -73,8 +83,8 @@ public class DonHangController : CoSoController
 
     // ---- nhan vien xu ly don
     [Authorize(Roles = VaiTro.NhanVienHoacAdmin), HttpGet]
-    public List<DonDatHangDTO> LayDanhSach(string? trangThai, DateTime? tuNgay, DateTime? denNgay) =>
-        _bll.LayDanhSach(trangThai, tuNgay, denNgay);
+    public List<DonDatHangDTO> LayDanhSach(string? trangThai, DateTime? tuNgay, DateTime? denNgay, string? nguon, string? yeuCauHuy) =>
+        _bll.LayDanhSach(trangThai, tuNgay, denNgay, nguon, yeuCauHuy);
 
     [Authorize(Roles = VaiTro.NhanVienHoacAdmin), HttpPost("{ma}/xac-nhan")]
     public HoaDonDTO XacNhan(string ma) => _bll.XacNhan(ma, MaNv);
@@ -89,7 +99,25 @@ public class DonHangController : CoSoController
     public IActionResult HoanTat(string ma) { _bll.HoanTat(ma, MaNv); return NoContent(); }
 
     [Authorize(Roles = VaiTro.NhanVienHoacAdmin), HttpPost("{ma}/huy")]
-    public IActionResult Huy(string ma) { _bll.NhanVienHuy(ma, MaNv); return NoContent(); }
+    public IActionResult Huy(string ma, LyDoDTO? yc) { _bll.NhanVienHuy(ma, MaNv, yc?.LyDo); return NoContent(); }
+
+    [Authorize(Roles = VaiTro.NhanVienHoacAdmin), HttpPost("{ma}/duyet-huy")]
+    public IActionResult DuyetHuy(string ma) { _bll.DuyetHuy(ma, MaNv); return NoContent(); }
+
+    [Authorize(Roles = VaiTro.NhanVienHoacAdmin), HttpPost("{ma}/tu-choi-huy")]
+    public IActionResult TuChoiHuy(string ma, LyDoDTO yc) { _bll.TuChoiHuy(ma, MaNv, yc.LyDo); return NoContent(); }
+}
+
+// v3: don da tra truoc bi huy -> danh sach cho hoan tien
+[Route("api/hoan-tien"), Authorize(Roles = VaiTro.NhanVienHoacAdmin)]
+public class HoanTienController : CoSoController
+{
+    private readonly HoanTienBLL _bll = new();
+
+    [HttpGet] public List<HoanTienDTO> LayDanhSach(string? trangThai) => _bll.LayDanhSach(trangThai);
+
+    [HttpPost("{ma}/da-hoan")]
+    public HoanTienDTO DaHoan(string ma, LyDoDTO? yc) => _bll.DaHoan(ma, MaNv, yc?.LyDo);
 }
 
 [Route("api/hoa-don"), Authorize]

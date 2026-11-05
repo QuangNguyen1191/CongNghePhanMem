@@ -1,6 +1,6 @@
 # API_MAPPING — Web bán hàng (khách hàng)
 
-Đối chiếu từng chức năng frontend với API **đang có thật** trong `backend/WebApi/Controllers` (bản đã sửa, 105 test Playwright pass).
+Đối chiếu từng chức năng frontend với API **đang có thật** trong `backend/WebApi/Controllers` (bản v3, 116 test Playwright pass).
 Không có endpoint nào trong bảng là tự đặt ra. Chỗ nào backend chưa có thì ghi rõ ở cột Status.
 
 **Quy ước chung của backend (đã kiểm tra trong code):**
@@ -42,7 +42,7 @@ Status: ✅ có đủ API · ⚠️ có API nhưng phải xử lý thêm ở fro
 | Frontend Feature | API Endpoint | HTTP Method | Request | Response | Status |
 |---|---|---|---|---|---|
 | Đăng nhập | `/api/tai-khoan/dang-nhap/web-ban-hang` | POST | `{ tenDangNhap, matKhau }` | `PhienDangNhapDTO { maTk, tenDangNhap, vaiTro, maKh, hoTen, token }`; tài khoản nhân viên → 400 | ✅ |
-| Đăng ký | `/api/tai-khoan/dang-ky` | POST | `{ tenDangNhap (≥4), matKhau (≥6), khachHang: { hoTen*, sdt?, email?, ngaySinh?, diaChi?, tinhThanh? } }` | `PhienDangNhapDTO` kèm token (đăng nhập luôn). SĐT trùng khách mua tại quầy chưa có TK thì gắn vào hồ sơ cũ | ✅ |
+| Đăng ký (v3) | `/api/tai-khoan/dang-ky` | POST | **v3: thêm `phienXacThuc` (token OTP) và `sdt` bắt buộc, phải trùng SĐT đã xác thực**; response thêm `soDonDaGan`. Cũ: `{ tenDangNhap (≥4), matKhau (≥6), khachHang: { hoTen*, sdt?, email?, ngaySinh?, diaChi?, tinhThanh? } }` | `PhienDangNhapDTO` kèm token (đăng nhập luôn). SĐT trùng khách mua tại quầy chưa có TK thì gắn vào hồ sơ cũ | ✅ |
 | Đăng xuất | — | — | — | xóa token ở client (JWT không có API thu hồi) | ⚠️ frontend |
 | Xem thông tin cá nhân, hạng thành viên, điểm | `/api/khach-hang/toi` | GET | Bearer | `KhachHangDTO { maKh, hoTen, sdt, email, ngaySinh, hangThanhVien, diemTichLuy, diaChi, tinhThanh }` | ✅ |
 | Cập nhật thông tin | `/api/khach-hang/toi` | PUT | `KhachHangDTO` **đầy đủ** | 204 | ⚠️ backend ghi đè cả `ngaySinh, diaChi, tinhThanh, sdt, email` → frontend phải gửi lại đủ các trường (lấy từ GET rồi sửa) |
@@ -75,6 +75,17 @@ Status: ✅ có đủ API · ⚠️ có API nhưng phải xử lý thêm ở fro
 | Chặn đặt trùng | — | — | — | server xóa giỏ sau khi đặt nên lần gửi thứ 2 nhận 400 "Giỏ hàng đang trống" | ⚠️ frontend khóa nút + cờ đang gửi |
 | Trang kết quả đặt hàng | `/api/don-hang/{ma}` | GET | Bearer | `DonDatHangDTO` kèm `chiTiets` | ✅ |
 
+## 4b. Mua không cần tài khoản (v3, `VangLaiController`)
+
+| Frontend Feature | API Endpoint | HTTP Method | Request | Response | Status |
+|---|---|---|---|---|---|
+| Gửi mã OTP (thanh toán, tra cứu, đăng ký) | `/api/vang-lai/otp` | POST | `{ sdt, mucDich: MUA_HANG \| TRA_CUU \| DANG_KY }` | `{ sdt, hetHanSauGiay, guiLaiSauGiay, maDemo? }` (`maDemo` chỉ có ở chế độ demo) | ✅ OTP giả lập |
+| Nhập mã OTP | `/api/vang-lai/xac-thuc` | POST | `{ sdt, ma }` | `PhienVangLaiDTO { sdt, token, hetHan, coTaiKhoan, hoTen?, email?, diaChi?, soDonCu }` | ✅ web lưu ở `sessionStorage` (`lib/phienVangLai.ts`) |
+| Đặt hàng không đăng nhập | `/api/vang-lai/don-hang` | POST | Bearer (token VANG_LAI) `{ hoTen, email?, diaChiGiao, phuongThucTt, maVoucher?, dongHangs }` | `DonDatHangDTO` (`nguon = VANG_LAI`) | ✅ |
+| Tra cứu đơn theo SĐT | `/api/vang-lai/don-hang`, `/{ma}`, `/{ma}/huy`, `/{ma}/pdf` | GET / POST | Bearer (VANG_LAI) | đơn của SĐT đã xác thực | ✅ trang `/tra-cuu-don` |
+| Ưu đãi thành viên mới | `/api/khuyen-mai/thanh-vien-moi` | GET | Bearer nếu có | `{ maKm, tenKm, soDonDau, phanTramGiamGia, giamToiDa, ngayKt, daDung?, conLai? }` hoặc 204 | ✅ |
+| Biết loại giảm đang áp | `/api/khuyen-mai/tinh-tien` | POST | như mục 4 | thêm `loaiGiam: HOA_DON \| VOUCHER \| THANH_VIEN_MOI`, `maVoucher` (mã thực sự được áp) | ✅ |
+
 ## 5. Đơn hàng, hóa đơn, đổi trả
 
 | Frontend Feature | API Endpoint | HTTP Method | Request | Response | Status |
@@ -82,7 +93,8 @@ Status: ✅ có đủ API · ⚠️ có API nhưng phải xử lý thêm ở fro
 | Danh sách đơn của tôi | `/api/don-hang/cua-toi` | GET | Bearer | `DonDatHangDTO[]` (không kèm `chiTiets`, mới nhất trước) | ✅ |
 | Chi tiết đơn | `/api/don-hang/{ma}` | GET | Bearer | `DonDatHangDTO` + `chiTiets [{maSp, soLuong, donGia, thanhTien, tenSp, kichCo, mauSac}]`; đơn người khác → 404 | ✅ |
 | Theo dõi trạng thái | (trường `trangThai`) | — | — | `CHO_XAC_NHAN → DA_XAC_NHAN → DANG_GIAO → HOAN_TAT`, hoặc `DA_HUY`, `TU_CHOI` | ✅ (không có lịch sử thời điểm từng bước) |
-| Hủy đơn | `/api/don-hang/{ma}/khach-huy` | POST | Bearer | 204; chỉ khi `CHO_XAC_NHAN`, ngược lại 400 | ✅ |
+| Hủy đơn | `/api/don-hang/{ma}/khach-huy` | POST | Bearer | 204; chỉ khi `CHO_XAC_NHAN`, ngược lại 400 | ✅ (web v3 dùng `yeu-cau-huy` bên dưới) |
+| Hủy / xin hủy đơn (v3) | `/api/don-hang/{ma}/yeu-cau-huy` (khách vãng lai: `/api/vang-lai/don-hang/{ma}/yeu-cau-huy`) | POST | `{ lyDo }` bắt buộc | `DonDatHangDTO`: chờ xác nhận → `DA_HUY` ngay; đã xác nhận → `yeuCauHuy = CHO_DUYET`; đang giao → 400. Đơn trả thêm `yeuCauHuy, lyDoHuy, phanHoiHuy, ngayHuy, nguoiHuy, trangThaiHoanTien, soTienHoan` | ✅ |
 | Tải PDF đơn | `/api/don-hang/{ma}/pdf` | GET | Bearer | file PDF | ✅ |
 | Hóa đơn của tôi (lịch sử mua, cả mua tại quầy) | `/api/hoa-don/cua-toi`, `/api/hoa-don/{ma}`, `/api/hoa-don/{ma}/pdf` | GET | Bearer | `HoaDonDTO` | ✅ |
 | Gửi yêu cầu đổi / trả | `/api/doi-tra` | POST | `{ maHoaDon, loai: DOI \| TRA, lyDo?, chiTiets: [{maSp, soLuong, maSpDoi?}] }` (≤30 ngày, hóa đơn đã thanh toán, đổi sang size/màu cùng mẫu) | `DoiTraDTO` | ✅ |

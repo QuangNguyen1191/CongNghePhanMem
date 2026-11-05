@@ -8,6 +8,7 @@ import { FilterPanel, type KhoaMang } from '../features/catalog/FilterPanel';
 import { ProductGrid, ProductGridSkeleton } from '../features/catalog/ProductGrid';
 import { KHOANG_GIA, NHAN_SAP_XEP, demBoLoc, docTieuChi, giaTriBoLoc, locVaSapXep, type SapXep } from '../features/catalog/boLoc';
 import { useTitle } from '../lib/useTitle';
+import { usePhimTat } from '../features/phimTat/usePhimTat';
 import NotFoundPage from './NotFoundPage';
 import s from './ListingPage.module.css';
 
@@ -18,7 +19,9 @@ type CheDo = 'tat-ca' | 'danh-muc' | 'tim-kiem';
 export default function ListingPage({ cheDo }: { cheDo: CheDo }) {
   const { maLoaiSp } = useParams();
   const [params, setParams] = useSearchParams();
-  const tuKhoa = cheDo === 'tim-kiem' ? (params.get('q') ?? '').trim() : '';
+  const tuKhoaNhap = cheDo === 'tim-kiem' ? (params.get('q') ?? '').trim().replace(/\s+/g, ' ') : '';
+  // dac ta W2.1: tu khoa it nhat 2 ky tu
+  const tuKhoa = tuKhoaNhap.length >= 2 ? tuKhoaNhap : '';
   const [moLoc, setMoLoc] = useState(false);
 
   const loaiQ = useLoaiSp();
@@ -67,6 +70,13 @@ export default function ListingPage({ cheDo }: { cheDo: CheDo }) {
   const sapXep = (v: SapXep) => capNhat((p) => { if (v === 'noi-bat') p.delete('sap'); else p.set('sap', v); });
   const xemThem = () => { const p = new URLSearchParams(params); p.set('trang', String(trang + 1)); setParams(p, { replace: true, preventScrollReset: true }); };
 
+  // phim tat 'f': desktop dua con tro vao bo loc ben trai, mobile mo ngan bo loc
+  usePhimTat('f', () => {
+    const ben = document.querySelector<HTMLElement>('[data-bo-loc-ben]');
+    if (ben && ben.offsetParent !== null) ben.querySelector<HTMLElement>('input, button, select')?.focus();
+    else setMoLoc(true);
+  });
+
   if (cheDo === 'danh-muc' && loaiQ.data && !loai) return <NotFoundPage />;
 
   const breadcrumb: MucBreadcrumb[] = [{ label: 'Trang chủ', to: '/' }];
@@ -106,10 +116,14 @@ export default function ListingPage({ cheDo }: { cheDo: CheDo }) {
       </header>
 
       {cheDo === 'tim-kiem' && !tuKhoa ? (
-        <EmptyState title="Nhập từ khóa để tìm sản phẩm" description="Bạn có thể tìm theo tên, mã sản phẩm hoặc màu sắc." />
+        <EmptyState
+          title={tuKhoaNhap ? 'Vui lòng nhập ít nhất 2 ký tự' : 'Nhập từ khóa để tìm sản phẩm'}
+          description="Bạn có thể tìm theo tên, mã sản phẩm hoặc màu sắc."
+          action={<ButtonLink to="/san-pham" variant="secondary">Xem tất cả sản phẩm</ButtonLink>}
+        />
       ) : (
         <div className={s.layout}>
-          <aside className={s.sidebar} aria-label="Bộ lọc sản phẩm">{boLoc}</aside>
+          <aside className={s.sidebar} aria-label="Bộ lọc sản phẩm" data-bo-loc-ben>{boLoc}</aside>
 
           <section className={s.main} aria-label="Danh sách sản phẩm">
             <div className={s.toolbar}>

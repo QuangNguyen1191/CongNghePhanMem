@@ -141,5 +141,23 @@ export function useThaoTacGio() {
     },
   });
 
-  return { them, capNhat, xoa, xoaHet };
+  /** Doi size / mau cua 1 dong gio. Backend khong co API doi truc tiep: them SKU moi truoc (server kiem tra ton), roi moi xoa dong cu. */
+  const doiBienThe = useMutation({
+    mutationFn: async ({ maSpCu, skuMoi, soLuong }: { maSpCu: string; skuMoi: SanPham; soLuong: number }) => {
+      if (skuMoi.maSp === maSpCu) return;
+      if (skuMoi.trangThai !== 'DANG_BAN' || skuMoi.soLuong <= 0) throw new Error('Phiên bản này đã hết hàng.');
+      if (phien) {
+        luu(await gioHangApi.them({ maSp: skuMoi.maSp, soLuong }));
+        luu(await gioHangApi.xoaDong(maSpCu));
+        return;
+      }
+      const daCo = gioTam.doc().find((d) => d.maSp === skuMoi.maSp)?.soLuong ?? 0;
+      if (daCo + soLuong > skuMoi.soLuong) throw new Error(`Phiên bản này chỉ còn ${skuMoi.soLuong} sản phẩm.`);
+      gioTam.them(skuMoi.maSp, soLuong);
+      gioTam.xoa(maSpCu);
+    },
+    onSuccess: () => toast.success('Đã đổi phân loại sản phẩm'),
+  });
+
+  return { them, capNhat, xoa, xoaHet, doiBienThe };
 }

@@ -65,7 +65,8 @@ public class NhanVienDAL
 
 public class KhachHangDAL
 {
-    private const string Cot = @"ma_kh, ma_tk, ho_ten, sdt, email, ngay_sinh, hang_thanh_vien, diem_tich_luy, dia_chi, tinh_thanh";
+    private const string Cot = @"ma_kh, ma_tk, ho_ten, sdt, email, ngay_sinh, hang_thanh_vien, diem_tich_luy, dia_chi, tinh_thanh,
+        sdt_da_xac_thuc";
 
     public List<KhachHangDTO> LayTatCa() =>
         DbHelper.Query<KhachHangDTO>($"SELECT {Cot} FROM KHACH_HANG ORDER BY ma_kh");
@@ -73,8 +74,8 @@ public class KhachHangDAL
     public KhachHangDTO? LayTheoMa(string ma, IDbTransaction? tx = null) =>
         DbHelper.QueryFirstOrDefault<KhachHangDTO>($"SELECT {Cot} FROM KHACH_HANG WHERE ma_kh = @ma", new { ma }, tx);
 
-    public KhachHangDTO? LayTheoSdt(string sdt) =>
-        DbHelper.QueryFirstOrDefault<KhachHangDTO>($"SELECT {Cot} FROM KHACH_HANG WHERE sdt = @sdt", new { sdt });
+    public KhachHangDTO? LayTheoSdt(string sdt, IDbTransaction? tx = null) =>
+        DbHelper.QueryFirstOrDefault<KhachHangDTO>($"SELECT {Cot} FROM KHACH_HANG WHERE sdt = @sdt", new { sdt }, tx);
 
     public bool TrungEmail(string email, string? boQuaMa = null) =>
         DbHelper.ExecuteScalar<int>("SELECT COUNT(*) FROM KHACH_HANG WHERE email = @email AND ma_kh <> ISNULL(@boQuaMa, '')",
@@ -82,18 +83,31 @@ public class KhachHangDAL
 
     public void Them(KhachHangDTO k, IDbTransaction tx) =>
         DbHelper.Execute(@"INSERT INTO KHACH_HANG (ma_kh, ma_tk, ho_ten, sdt, email, ngay_sinh, hang_thanh_vien, diem_tich_luy,
-                dia_chi, tinh_thanh)
-            VALUES (@MaKh, @MaTk, @HoTen, @Sdt, @Email, @NgaySinh, 'DONG', 0, @DiaChi, @TinhThanh)", k, tx);
+                dia_chi, tinh_thanh, sdt_da_xac_thuc)
+            VALUES (@MaKh, @MaTk, @HoTen, @Sdt, @Email, @NgaySinh, 'DONG', 0, @DiaChi, @TinhThanh, @SdtDaXacThuc)", k, tx);
 
+    // Doi sang SDT khac thi SDT moi chua duoc xac thuc
     public int Sua(KhachHangDTO k) =>
         DbHelper.Execute(@"UPDATE KHACH_HANG SET ho_ten = @HoTen, sdt = @Sdt, email = @Email, ngay_sinh = @NgaySinh,
-                dia_chi = @DiaChi, tinh_thanh = @TinhThanh WHERE ma_kh = @MaKh", k);
+                dia_chi = @DiaChi, tinh_thanh = @TinhThanh,
+                sdt_da_xac_thuc = CASE WHEN ISNULL(sdt, '') = ISNULL(@Sdt, '') THEN sdt_da_xac_thuc ELSE 0 END
+            WHERE ma_kh = @MaKh", k);
+
+    // v3: khach vang lai dat don moi -> cap nhat ten / dia chi moi nhat, email chi dien khi chua co
+    public int CapNhatVangLai(string maKh, string hoTen, string? email, string diaChi, IDbTransaction tx) =>
+        DbHelper.Execute(@"UPDATE KHACH_HANG SET ho_ten = @hoTen, dia_chi = @diaChi, email = COALESCE(email, @email),
+                sdt_da_xac_thuc = 1
+            WHERE ma_kh = @maKh AND ma_tk IS NULL", new { maKh, hoTen, email, diaChi }, tx);
+
+    public int DanhDauDaXacThuc(string sdt) =>
+        DbHelper.Execute("UPDATE KHACH_HANG SET sdt_da_xac_thuc = 1 WHERE sdt = @sdt", new { sdt });
 
     // Khach mua tai quay dang ky tai khoan sau: gan tai khoan vao ho so cu, giu lich su mua
     public int GanTaiKhoan(KhachHangDTO k, string maTk, IDbTransaction tx) =>
         DbHelper.Execute(@"UPDATE KHACH_HANG SET ma_tk = @maTk, ho_ten = @HoTen, email = @Email, ngay_sinh = @NgaySinh,
-                dia_chi = @DiaChi, tinh_thanh = @TinhThanh WHERE ma_kh = @MaKh AND ma_tk IS NULL",
-            new { maTk, k.HoTen, k.Email, k.NgaySinh, k.DiaChi, k.TinhThanh, k.MaKh }, tx);
+                dia_chi = @DiaChi, tinh_thanh = @TinhThanh, sdt_da_xac_thuc = @SdtDaXacThuc
+            WHERE ma_kh = @MaKh AND ma_tk IS NULL",
+            new { maTk, k.HoTen, k.Email, k.NgaySinh, k.DiaChi, k.TinhThanh, k.SdtDaXacThuc, k.MaKh }, tx);
 
     public int SuaHangDiem(string ma, string hang, int diem, IDbTransaction? tx = null) =>
         DbHelper.Execute("UPDATE KHACH_HANG SET hang_thanh_vien = @hang, diem_tich_luy = @diem WHERE ma_kh = @ma",

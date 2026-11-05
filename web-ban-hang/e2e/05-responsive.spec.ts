@@ -10,7 +10,7 @@ test.describe('Responsive & lỗi trang', () => {
       page.on('pageerror', (e) => loi.push(e.message));
       page.on('console', (m) => { if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) loi.push(m.text()); });
       await page.setViewportSize({ width: w, height: 900 });
-      for (const url of ['/', '/san-pham', '/danh-muc/LSP01', `/san-pham/${sku.maSp}`, '/gio-hang', '/dang-nhap', '/dang-ky', '/huong-dan-chon-size', '/chinh-sach-doi-tra']) {
+      for (const url of ['/', '/san-pham', '/danh-muc/LSP01', `/san-pham/${sku.maSp}`, '/gio-hang', '/dang-nhap', '/dang-ky', '/tra-cuu-don', '/huong-dan-chon-size', '/chinh-sach-doi-tra']) {
         await page.goto(url);
         await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible();
         const tran = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);

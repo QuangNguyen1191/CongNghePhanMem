@@ -8,6 +8,8 @@ public class KhuyenMaiBLL
 {
     private readonly KhuyenMaiDAL _dal = new();
     private readonly SanPhamDAL _spDal = new();
+    private readonly KhachHangDAL _khDal = new();
+    private readonly DonDatHangDAL _donDal = new();
 
     public List<KhuyenMaiDTO> LayTatCa() => _dal.LayTatCa();
 
@@ -72,17 +74,39 @@ public class KhuyenMaiBLL
                     QuyTac.KiemTra(v.PhanTramGiamGia is > 0 and <= 100, "Phần trăm giảm phải từ 0 đến 100");
                 }
                 break;
+            case "THANH_VIEN_MOI":
+                var tv = k.ThanhVienMoi ?? throw new LoiNghiepVu("Nhập số đơn đầu và phần trăm giảm cho ưu đãi thành viên mới");
+                QuyTac.KiemTra(tv.SoDonDau is >= 1 and <= 10, "Số đơn đầu được giảm phải từ 1 đến 10");
+                QuyTac.KiemTra(tv.PhanTramGiamGia is > 0 and <= 100, "Phần trăm giảm phải từ 0 đến 100");
+                QuyTac.KiemTra(tv.GiamToiDa is null or > 0, "Mức giảm tối đa phải lớn hơn 0");
+                k.PhanTramGiamGia = tv.PhanTramGiamGia;
+                break;
             default:
-                throw new LoiNghiepVu("Hình thức khuyến mãi phải là SAN_PHAM, HOA_DON hoặc VOUCHER");
+                throw new LoiNghiepVu("Hình thức khuyến mãi phải là SAN_PHAM, HOA_DON, VOUCHER hoặc THANH_VIEN_MOI");
         }
+    }
+
+    // v3: Uu dai thanh vien moi dang chay. Truyen ma KH thi tinh them so luot da dung / con lai cua khach do
+    // (khach chua co tai khoan thi DaDung / ConLai = null: chua duoc huong, chi de quang ba).
+    public UuDaiThanhVienMoiDTO? LayUuDaiThanhVienMoi(string? maKh = null, DateTime? ngay = null, IDbTransaction? tx = null)
+    {
+        var ud = _dal.LayThanhVienMoiDangChay(ngay ?? DateTime.Today, tx).FirstOrDefault();
+        if (ud == null || maKh == null) return ud;
+        var kh = _khDal.LayTheoMa(maKh, tx);
+        if (kh?.MaTk == null) return ud;
+        ud.DaDung = _donDal.DemDonTaiKhoan(maKh, tx);
+        ud.ConLai = Math.Max(0, ud.SoDonDau - ud.DaDung.Value);
+        return ud;
     }
 
     // Tinh tien cho 1 danh sach dong hang tai ngay chi dinh. Dung chung cho gio hang, dat hang, ban tai quay.
     //   1. Gia tung dong = don gia - % khuyen mai san pham lon nhat dang chay
     //   2. Giam tren ca hoa don: neu khach nhap voucher hop le thi dung voucher,
     //      khong thi lay muc khuyen mai hoa don cao nhat ma tam tinh dat duoc. Khong cong don 2 loai.
+    //   3. (v3) maKhThanhVien: khach co tai khoan con luot uu dai thanh vien moi -> neu muc nay giam nhieu hon
+    //      muc o buoc 2 thi dung muc nay thay the (van khong cong don).
     public BangTinhTienDTO TinhTien(List<DongHangDTO> dongHangs, DateTime ngay, string? maVoucher,
-        IDbTransaction? tx = null, bool kiemTraTon = true)
+        IDbTransaction? tx = null, bool kiemTraTon = true, string? maKhThanhVien = null)
     {
         QuyTac.KiemTra(dongHangs.Count > 0, "Chưa có sản phẩm nào");
         var gop = dongHangs.GroupBy(d => d.MaSp.Trim().ToUpper())
@@ -116,6 +140,8 @@ public class KhuyenMaiBLL
             bang.TienGiam = Math.Round(bang.TamTinh * v.PhanTramGiamGia / 100, 0);
             bang.MaKm = v.MaKm;
             bang.GhiChuKm = $"Voucher {v.MaVoucher} giảm {v.PhanTramGiamGia:0.##}%";
+            bang.LoaiGiam = "VOUCHER";
+            bang.MaVoucher = v.MaVoucher;
         }
         else
         {
@@ -126,6 +152,23 @@ public class KhuyenMaiBLL
                 bang.TienGiam = Math.Round(bang.TamTinh * muc.PhanTramGiamGia / 100, 0);
                 bang.MaKm = muc.MaKm;
                 bang.GhiChuKm = $"Hóa đơn từ {muc.MucApDungHoaDon:N0}đ giảm {muc.PhanTramGiamGia:0.##}%";
+                bang.LoaiGiam = "HOA_DON";
+            }
+        }
+        if (maKhThanhVien != null && LayUuDaiThanhVienMoi(maKhThanhVien, ngay, tx) is { ConLai: > 0 } ud)
+        {
+            var giam = Math.Round(bang.TamTinh * ud.PhanTramGiamGia / 100, 0);
+            if (ud.GiamToiDa is { } toiDa) giam = Math.Min(giam, toiDa);
+            if (giam > bang.TienGiam)
+            {
+                var luot = ud.DaDung!.Value + 1;
+                bang.GhiChuKm = $"Ưu đãi thành viên mới giảm {ud.PhanTramGiamGia:0.##}%"
+                    + (ud.GiamToiDa != null ? $" (tối đa {ud.GiamToiDa:N0}đ)" : "") + $", đơn thứ {luot}/{ud.SoDonDau}"
+                    + (maVoucher != null ? $". Mức này có lợi hơn mã {maVoucher} nên được áp dụng" : "");
+                bang.TienGiam = giam;
+                bang.MaKm = ud.MaKm;
+                bang.LoaiGiam = "THANH_VIEN_MOI";
+                bang.MaVoucher = null;
             }
         }
         bang.MaKm ??= maKmSanPham;

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { admin, anDanh, ctxCho, dangNhap, khach, loi, ok, RUN, sdtMoi, BASE } from './helpers';
+import { admin, anDanh, ctxCho, dangNhap, khach, loi, ok, RUN, sdtMoi, BASE, dangKy } from './helpers';
 import { request } from '@playwright/test';
 
 test.describe('TaiKhoan - dang nhap / dang ky / doi mat khau', () => {
@@ -37,24 +37,17 @@ test.describe('TaiKhoan - dang nhap / dang ky / doi mat khau', () => {
   test('dang ky khach moi -> dang nhap web ban hang duoc, trung ten -> 400', async () => {
     const api = await anDanh();
     const ten = `kh${RUN}`;
-    const p = await ok(await api.post('/api/tai-khoan/dang-ky', {
-      data: { tenDangNhap: ten, matKhau: 'abc123', khachHang: { hoTen: 'Khách Test', sdt: sdtMoi(1), email: `${ten}@test.vn` } },
-    }));
+    const p = await ok(await dangKy(api, { tenDangNhap: ten, matKhau: 'abc123', khachHang: { hoTen: 'Khách Test', sdt: sdtMoi(1), email: `${ten}@test.vn` } }));
     expect(p).toMatchObject({ tenDangNhap: ten, vaiTro: 'KHACH_HANG', maKh: expect.stringMatching(/^KH/) });
     expect(p.token).toBeTruthy();
     await ok(await dangNhap(api, ten, 'web-ban-hang', 'abc123'));
 
-    await loi(await api.post('/api/tai-khoan/dang-ky', {
-      data: { tenDangNhap: ten, matKhau: 'abc123', khachHang: { hoTen: 'X' } } }), 400, /đã tồn tại/);
-    await loi(await api.post('/api/tai-khoan/dang-ky', {
-      data: { tenDangNhap: 'ab', matKhau: 'abc123', khachHang: { hoTen: 'X' } } }), 400, /4 ký tự/);
-    await loi(await api.post('/api/tai-khoan/dang-ky', {
-      data: { tenDangNhap: `x${ten}`, matKhau: '123', khachHang: { hoTen: 'X' } } }), 400, /6 ký tự/);
-    await loi(await api.post('/api/tai-khoan/dang-ky', {
-      data: { tenDangNhap: `y${ten}`, matKhau: '123456', khachHang: { hoTen: '' } } }), 400, /họ tên/);
+    await loi(await dangKy(api, { tenDangNhap: ten, matKhau: 'abc123', khachHang: { hoTen: 'X' } }), 400, /đã tồn tại/);
+    await loi(await dangKy(api, { tenDangNhap: 'ab', matKhau: 'abc123', khachHang: { hoTen: 'X' } }), 400, /4 ký tự/);
+    await loi(await dangKy(api, { tenDangNhap: `x${ten}`, matKhau: '123', khachHang: { hoTen: 'X' } }), 400, /6 ký tự/);
+    await loi(await dangKy(api, { tenDangNhap: `y${ten}`, matKhau: '123456', khachHang: { hoTen: '' } }), 400, /họ tên/);
     // SDT da co tai khoan
-    await loi(await api.post('/api/tai-khoan/dang-ky', {
-      data: { tenDangNhap: `z${ten}`, matKhau: '123456', khachHang: { hoTen: 'Z', sdt: sdtMoi(1) } } }), 400, /Số điện thoại/);
+    await loi(await dangKy(api, { tenDangNhap: `z${ten}`, matKhau: '123456', khachHang: { hoTen: 'Z', sdt: sdtMoi(1) } }), 400, /Số điện thoại/);
   });
 
   test('dang ky voi SDT khach tai quay -> gan tai khoan vao khach cu', async () => {
@@ -63,18 +56,14 @@ test.describe('TaiKhoan - dang nhap / dang ky / doi mat khau', () => {
     const khCu = await ok(await ad.post('/api/khach-hang', { data: { hoTen: 'Khách quầy', sdt } }));
     expect(khCu.maTk).toBeNull();
     const api = await anDanh();
-    const p = await ok(await api.post('/api/tai-khoan/dang-ky', {
-      data: { tenDangNhap: `quay${RUN}`, matKhau: '123456', khachHang: { hoTen: 'Khách quầy online', sdt } },
-    }));
+    const p = await ok(await dangKy(api, { tenDangNhap: `quay${RUN}`, matKhau: '123456', khachHang: { hoTen: 'Khách quầy online', sdt } }));
     expect(p.maKh).toBe(khCu.maKh);
   });
 
   test('doi mat khau: sai mat khau cu 400, dung -> dang nhap bang mat khau moi', async () => {
     const api = await anDanh();
     const ten = `dmk${RUN}`;
-    const p = await ok(await api.post('/api/tai-khoan/dang-ky', {
-      data: { tenDangNhap: ten, matKhau: '111111', khachHang: { hoTen: 'Đổi MK' } },
-    }));
+    const p = await ok(await dangKy(api, { tenDangNhap: ten, matKhau: '111111', khachHang: { hoTen: 'Đổi MK' } }));
     const kh = await request.newContext({ baseURL: BASE, extraHTTPHeaders: { Authorization: `Bearer ${p.token}` } });
     await loi(await kh.post('/api/tai-khoan/doi-mat-khau', { data: { matKhauCu: 'sai', matKhauMoi: '222222' } }), 400, /cũ không đúng/);
     await loi(await kh.post('/api/tai-khoan/doi-mat-khau', { data: { matKhauCu: '111111', matKhauMoi: '22' } }), 400, /6 ký tự/);
@@ -99,9 +88,7 @@ test.describe('TaiKhoan - dang nhap / dang ky / doi mat khau', () => {
   test('admin: khoa / mo / dat lai mat khau', async () => {
     const api = await anDanh();
     const ten = `khoa${RUN}`;
-    const p = await ok(await api.post('/api/tai-khoan/dang-ky', {
-      data: { tenDangNhap: ten, matKhau: '123456', khachHang: { hoTen: 'Bị khóa' } },
-    }));
+    const p = await ok(await dangKy(api, { tenDangNhap: ten, matKhau: '123456', khachHang: { hoTen: 'Bị khóa' } }));
     const ad = await admin();
     expect((await ad.post(`/api/tai-khoan/${p.maTk}/khoa`)).status()).toBe(204);
     await loi(await dangNhap(api, ten, 'web-ban-hang'), 400, /khóa/);
@@ -119,9 +106,7 @@ test.describe('TaiKhoan - dang nhap / dang ky / doi mat khau', () => {
   test('token cua khach da bi khoa khong dung duoc nua', async () => {
     const api = await anDanh();
     const ten = `tkk${RUN}`;
-    const p = await ok(await api.post('/api/tai-khoan/dang-ky', {
-      data: { tenDangNhap: ten, matKhau: '123456', khachHang: { hoTen: 'Khóa token' } },
-    }));
+    const p = await ok(await dangKy(api, { tenDangNhap: ten, matKhau: '123456', khachHang: { hoTen: 'Khóa token' } }));
     const kh = await request.newContext({ baseURL: BASE, extraHTTPHeaders: { Authorization: `Bearer ${p.token}` } });
     await ok(await kh.get('/api/khach-hang/toi'));
     const ad = await admin();

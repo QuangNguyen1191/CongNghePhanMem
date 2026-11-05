@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { admin, anDanh, khach, loi, nhanVien, ok, RUN, taoSanPhamCoTon, BASE } from './helpers';
+import { admin, anDanh, khach, loi, nhanVien, ok, RUN, taoSanPhamCoTon, BASE, dangKy } from './helpers';
 import { request } from '@playwright/test';
 
 const ton = async (api: any, maSp: string) => (await ok(await api.get(`/api/san-pham/${maSp}`))).soLuong as number;
@@ -55,7 +55,7 @@ test.describe('DoiTra', () => {
     const l = await taoSanPhamCoTon(ad, 20, 200000, ten, 'L');
     const api = await anDanh();
     const ten2 = `dt${RUN}${Math.random().toString(36).slice(2, 5)}`;
-    const p = await ok(await api.post('/api/tai-khoan/dang-ky', { data: { tenDangNhap: ten2, matKhau: '123456', khachHang: { hoTen: 'Khách đổi trả' } } }));
+    const p = await ok(await dangKy(api, { tenDangNhap: ten2, matKhau: '123456', khachHang: { hoTen: 'Khách đổi trả' } }));
     const kh = await request.newContext({ baseURL: BASE, extraHTTPHeaders: { Authorization: `Bearer ${p.token}` } });
     const nv = await nhanVien();
     const hd = await ok(await nv.post('/api/hoa-don/ban-tai-quay', {

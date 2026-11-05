@@ -1,0 +1,14 @@
+.bang { display: grid; gap: var(--s-5); max-height: 65vh; overflow-y: auto; }
+.bang:focus { outline: none; }
+.nhom { margin-bottom: var(--s-2); }
+.ds { display: grid; gap: var(--s-2); margin: 0; }
+.dong { display: grid; grid-template-columns: 112px 1fr; gap: var(--s-3); align-items: center; }
+@media (min-width: 640px) { .dong { grid-template-columns: 150px 1fr; } }
+.dong dd { margin: 0; color: var(--c-ink-2); }
+.phim { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 4px; }
+.noi { font-size: var(--fs-small); color: var(--c-muted); margin: 0 4px; }
+.kbd {
+  display: inline-block; min-width: 26px; padding: 2px 6px; text-align: center;
+  font: 600 12px/18px var(--font-sans); border: 1px solid var(--c-line); border-bottom-width: 2px;
+  border-radius: 2px; background: var(--c-surface);
+}

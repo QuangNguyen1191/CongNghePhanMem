@@ -34,3 +34,5 @@
 .payOpt span { display: grid; gap: 2px; }
 .section { display: grid; gap: var(--s-4); }
 .sectionTitle { font-size: var(--fs-h2); font-weight: 600; }
+.doi { text-decoration: underline; text-underline-offset: 3px; color: var(--c-ink-2); font-size: inherit; }
+.doi:hover { color: var(--c-ink); }

@@ -34,3 +34,4 @@ button:disabled { cursor: not-allowed; }
 .skip-link:focus { left: var(--s-2); top: var(--s-2); }
 .link { text-decoration: underline; text-underline-offset: 3px; }
 .link:hover { color: var(--c-ink-2); }
+kbd { display: inline-block; min-width: 20px; padding: 0 5px; text-align: center; font: 600 11px/18px var(--font-sans); border: 1px solid var(--c-line); border-bottom-width: 2px; border-radius: 2px; background: var(--c-surface); color: var(--c-ink); }

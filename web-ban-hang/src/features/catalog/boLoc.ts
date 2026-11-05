@@ -1,7 +1,7 @@
 // Bo loc + sap xep tren danh sach mau san pham da tai (khong goi API them).
 import { soSanhSize, type MauSanPham } from './gomSanPham';
 
-export type SapXep = 'noi-bat' | 'moi' | 'gia-tang' | 'gia-giam';
+export type SapXep = 'noi-bat' | 'moi' | 'gia-tang' | 'gia-giam' | 'ten-az' | 'ten-za';
 
 export const KHOANG_GIA = [
   { ma: 'duoi-300', nhan: 'Dưới 300.000₫', tu: 0, den: 300_000 },
@@ -15,6 +15,8 @@ export const NHAN_SAP_XEP: Record<SapXep, string> = {
   moi: 'Mới nhất',
   'gia-tang': 'Giá thấp đến cao',
   'gia-giam': 'Giá cao đến thấp',
+  'ten-az': 'Tên A → Z',
+  'ten-za': 'Tên Z → A',
 };
 
 export interface TieuChi {
@@ -61,6 +63,8 @@ export function locVaSapXep(ds: MauSanPham[], t: TieuChi): MauSanPham[] {
   switch (t.sap) {
     case 'gia-tang': sx.sort((a, b) => a.giaBanThapNhat - b.giaBanThapNhat); break;
     case 'gia-giam': sx.sort((a, b) => b.giaBanThapNhat - a.giaBanThapNhat); break;
+    case 'ten-az': sx.sort((a, b) => a.tenSp.localeCompare(b.tenSp, 'vi')); break;
+    case 'ten-za': sx.sort((a, b) => b.tenSp.localeCompare(a.tenSp, 'vi')); break;
     case 'moi': sx.sort((a, b) => b.maSpMoiNhat.localeCompare(a.maSpMoiNhat)); break;
     default: sx.sort((a, b) => Number(b.conHang) - Number(a.conHang)); // het hang xuong cuoi
   }

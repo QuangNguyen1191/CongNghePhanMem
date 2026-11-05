@@ -3,6 +3,7 @@ import { Outlet, ScrollRestoration } from 'react-router-dom';
 import { Header } from './Header';
 import { Footer } from './Footer';
 import { PageLoading } from '../pages/PageLoading';
+import { PhimTatToanCuc } from '../features/phimTat/PhimTatToanCuc';
 import s from './MainLayout.module.css';
 
 export function MainLayout() {
@@ -15,6 +16,7 @@ export function MainLayout() {
         </Suspense>
       </main>
       <Footer />
+      <PhimTatToanCuc />
       <ScrollRestoration />
     </div>
   );

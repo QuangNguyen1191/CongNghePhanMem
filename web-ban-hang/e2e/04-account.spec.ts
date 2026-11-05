@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { dangNhapUI, nhan } from './helpers';
+import { dangNhapUI, nhan, sdtMoi, xacThucOtpUI } from './helpers';
 
 test.describe('Tài khoản', () => {
   test('trang cần đăng nhập chuyển về đăng nhập rồi quay lại', async ({ page }) => {
@@ -29,6 +29,15 @@ test.describe('Tài khoản', () => {
     await page.getByLabel(nhan('Mật khẩu')).fill('123456');
     await page.getByLabel(nhan('Nhập lại mật khẩu')).fill('123456');
     await page.getByLabel(nhan('Họ và tên')).fill('Khách Kiểm Thử');
+    // v3: SDT bat buoc, phai xac thuc OTP
+    await page.getByRole('button', { name: 'Đăng ký' }).click();
+    await expect(page.getByText('Vui lòng xác thực số điện thoại bằng mã OTP')).toBeVisible();
+    await page.getByLabel(nhan('Số điện thoại')).fill('0123');
+    await page.getByRole('button', { name: 'Gửi mã OTP' }).click();
+    await expect(page.getByText(/Số điện thoại di động gồm 10 chữ số/)).toBeVisible();
+    const sdtDk = sdtMoi('1');
+    await xacThucOtpUI(page, sdtDk);
+    await expect(page.getByText(new RegExp(`${sdtDk} đã xác thực`))).toBeVisible();
     await page.getByLabel(nhan('Địa chỉ')).fill('12 Nguyễn Huệ, Quận 1');
     await page.getByLabel(nhan('Tỉnh / thành phố')).fill('TP Hồ Chí Minh');
     await page.getByRole('button', { name: 'Đăng ký' }).click();
@@ -40,7 +49,7 @@ test.describe('Tài khoản', () => {
     await page.getByLabel(nhan('Số điện thoại')).fill('12');
     await page.getByRole('button', { name: 'Lưu thay đổi' }).click();
     await expect(page.getByText('Số điện thoại gồm 9 đến 11 chữ số')).toBeVisible();
-    const sdt = `09${String(Date.now()).slice(-8)}`;
+    const sdt = sdtMoi('2');
     await page.getByLabel(nhan('Số điện thoại')).fill(sdt);
     await page.getByRole('button', { name: 'Lưu thay đổi' }).click();
     await expect(page.getByText('Đã cập nhật thông tin')).toBeVisible();
@@ -86,12 +95,22 @@ test.describe('Tài khoản', () => {
     const chonHd = page.getByLabel('Hóa đơn');
     test.skip(!(await chonHd.isVisible().catch(() => false)) || (await chonHd.locator('option').count()) < 2,
       'Không có hóa đơn nào của khach01 còn trong hạn 30 ngày');
-    await chonHd.selectOption({ index: 1 });
-    const o = page.locator('input[type="checkbox"]:not([disabled])').first();
-    test.skip((await o.count()) === 0, 'Hóa đơn đã yêu cầu đổi / trả hết');
-    await o.check();
+    // Moi lan chay test tao 1 phieu CHO_DUYET -> tim hoa don / dong con doi duoc va con size / mau khac
     const doiSang = page.getByLabel('Đổi sang');
-    test.skip(!(await doiSang.isVisible().catch(() => false)), 'Mẫu này không còn size / màu khác để đổi');
+    const soHd = await chonHd.locator('option').count();
+    let duoc = false;
+    for (let i = 1; i < soHd && !duoc; i++) {
+      await chonHd.selectOption({ index: i });
+      const dongs = page.locator('input[type="checkbox"]:not([disabled])');
+      await dongs.first().waitFor({ timeout: 3000 }).catch(() => {});
+      for (let j = 0; j < (await dongs.count()) && !duoc; j++) {
+        await dongs.nth(j).check();
+        if (await doiSang.isVisible().catch(() => false)
+          && (await doiSang.locator('option').count()) > 1) duoc = true;
+        else await dongs.nth(j).uncheck();
+      }
+    }
+    test.skip(!duoc, 'Không còn sản phẩm nào đổi được (đã yêu cầu hết hoặc không còn size / màu khác)');
     await doiSang.selectOption({ index: 1 });
     await page.getByLabel('Lý do').fill('Muốn đổi size');
     await page.getByRole('button', { name: 'Gửi yêu cầu' }).click();

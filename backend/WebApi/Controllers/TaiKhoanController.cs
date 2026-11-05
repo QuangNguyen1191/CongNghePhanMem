@@ -15,7 +15,8 @@ public class TaiKhoanController : CoSoController
     public TaiKhoanController(CauHinhJwt jwt) => _jwt = jwt;
 
     public record DangNhapYeuCau(string TenDangNhap, string MatKhau);
-    public record DangKyYeuCau(string TenDangNhap, string MatKhau, KhachHangDTO KhachHang);
+    // v3: PhienXacThuc = token nhan duoc sau khi xac thuc OTP (POST /api/vang-lai/xac-thuc)
+    public record DangKyYeuCau(string TenDangNhap, string MatKhau, KhachHangDTO KhachHang, string? PhienXacThuc);
     public record DoiMatKhauYeuCau(string MatKhauCu, string MatKhauMoi);
 
     // Moi noi 1 duong dan rieng: khach chi vao duoc web-ban-hang, nhan vien web-staff, admin app-admin (+ web-staff)
@@ -38,7 +39,8 @@ public class TaiKhoanController : CoSoController
     [HttpPost("dang-ky")]
     public PhienDangNhapDTO DangKy(DangKyYeuCau yc)
     {
-        var p = _bll.DangKy(yc.TenDangNhap ?? "", yc.MatKhau ?? "", yc.KhachHang ?? new KhachHangDTO());
+        var sdt = TaoToken.DocSdtVangLai(yc.PhienXacThuc, _jwt);
+        var p = _bll.DangKy(yc.TenDangNhap ?? "", yc.MatKhau ?? "", yc.KhachHang ?? new KhachHangDTO(), sdt);
         p.Token = TaoToken.Tao(p, _jwt);
         return p;
     }

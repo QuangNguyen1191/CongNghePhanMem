@@ -8,6 +8,11 @@ export const qk = {
   giaKhuyenMai: ['san-pham', 'gia-km'] as const,
   kmDangChay: ['khuyen-mai', 'dang-chay'] as const,
   boAnh: ['bo-anh-uniqlo'] as const,
+  // uu dai thanh vien moi: kem so luot con lai cua khach dang nhap -> de duoi 'toi' khi da dang nhap
+  uuDaiTvm: (dangNhap: boolean) => (dangNhap ? ['toi', 'uu-dai-tvm'] : ['uu-dai-tvm']) as readonly string[],
+  // don cua khach vang lai: theo SDT da xac thuc
+  vangLaiDons: (sdt: string) => ['vang-lai', sdt, 'don-hang'] as const,
+  vangLaiDon: (sdt: string, ma: string) => ['vang-lai', sdt, 'don-hang', ma] as const,
   // du lieu rieng cua khach: bat dau bang 'toi' de xoa het 1 lan khi dang xuat
   hoSo: ['toi', 'ho-so'] as const,
   gioHang: ['toi', 'gio-hang'] as const,

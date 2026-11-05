@@ -16,6 +16,8 @@ public class KhuyenMaiDAL
         km.MucHoaDons = DbHelper.Query<CtKmHoaDonDTO>(
             "SELECT * FROM CT_KM_HOA_DON WHERE ma_km = @ma ORDER BY muc_ap_dung_hoa_don", new { ma });
         km.Vouchers = DbHelper.Query<CtKmVoucherDTO>("SELECT * FROM CT_KM_VOUCHER WHERE ma_km = @ma", new { ma });
+        km.ThanhVienMoi = DbHelper.QueryFirstOrDefault<CtKmThanhVienMoiDTO>(
+            "SELECT * FROM CT_KM_THANH_VIEN_MOI WHERE ma_km = @ma", new { ma });
         return km;
     }
 
@@ -40,6 +42,13 @@ public class KhuyenMaiDAL
             WHERE c.ma_voucher = @maVoucher AND @ngay BETWEEN k.ngay_bd AND k.ngay_kt",
             new { maVoucher, ngay = ngay.Date }, tx);
 
+    // v3: chuong trinh uu dai thanh vien moi dang chay (thuong chi co 1)
+    public List<UuDaiThanhVienMoiDTO> LayThanhVienMoiDangChay(DateTime ngay, IDbTransaction? tx = null) =>
+        DbHelper.Query<UuDaiThanhVienMoiDTO>(@"SELECT k.ma_km, k.ten_km, k.ngay_kt, c.so_don_dau, c.phan_tram_giam_gia, c.giam_toi_da
+            FROM CT_KM_THANH_VIEN_MOI c JOIN KHUYEN_MAI k ON k.ma_km = c.ma_km
+            WHERE @ngay BETWEEN k.ngay_bd AND k.ngay_kt
+            ORDER BY c.phan_tram_giam_gia DESC", new { ngay = ngay.Date }, tx);
+
     public void Them(KhuyenMaiDTO k, IDbTransaction tx)
     {
         DbHelper.Execute(@"INSERT INTO KHUYEN_MAI (ma_km, ten_km, hinh_thuc, phan_tram_giam_gia, ngay_bd, ngay_kt)
@@ -53,6 +62,7 @@ public class KhuyenMaiDAL
                 phan_tram_giam_gia = @PhanTramGiamGia, ngay_bd = @NgayBd, ngay_kt = @NgayKt WHERE ma_km = @MaKm", k, tx);
         DbHelper.Execute("DELETE FROM CT_KM_SAN_PHAM WHERE ma_km = @MaKm", k, tx);
         DbHelper.Execute("DELETE FROM CT_KM_HOA_DON WHERE ma_km = @MaKm", k, tx);
+        DbHelper.Execute("DELETE FROM CT_KM_THANH_VIEN_MOI WHERE ma_km = @MaKm", k, tx);
         // voucher da duoc dung trong don thi khong xoa duoc (khoa ngoai) -> chi them voucher moi
         GhiChiTiet(k, tx, chiThemVoucherMoi: true);
     }
@@ -76,6 +86,9 @@ public class KhuyenMaiDAL
         foreach (var c in k.MucHoaDons)
             DbHelper.Execute(@"INSERT INTO CT_KM_HOA_DON (ma_km, muc_ap_dung_hoa_don, phan_tram_giam_gia)
                 VALUES (@ma, @MucApDungHoaDon, @PhanTramGiamGia)", new { ma = k.MaKm, c.MucApDungHoaDon, c.PhanTramGiamGia }, tx);
+        if (k.ThanhVienMoi is { } tv)
+            DbHelper.Execute(@"INSERT INTO CT_KM_THANH_VIEN_MOI (ma_km, so_don_dau, phan_tram_giam_gia, giam_toi_da)
+                VALUES (@ma, @SoDonDau, @PhanTramGiamGia, @GiamToiDa)", new { ma = k.MaKm, tv.SoDonDau, tv.PhanTramGiamGia, tv.GiamToiDa }, tx);
         foreach (var c in k.Vouchers)
         {
             var sql = chiThemVoucherMoi

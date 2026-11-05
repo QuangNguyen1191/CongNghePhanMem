@@ -22,6 +22,22 @@ test.describe('Giỏ hàng', () => {
     await page.reload();
     await expect(dong).toHaveCount(1);
 
+    // doi size / mau ngay trong gio (neu mau nay con size khac con hang)
+    await dong.getByRole('button', { name: 'Đổi' }).click();
+    const ngan = page.getByRole('dialog', { name: 'Đổi màu / kích cỡ' });
+    await expect(ngan).toBeVisible();
+    const sizeKhac = ngan.locator('label:has(input[name="doi-size"]:not([disabled]):not(:checked))');
+    if (await sizeKhac.count()) {
+      const ten = (await sizeKhac.first().innerText()).trim();
+      await sizeKhac.first().click();
+      await ngan.getByRole('button', { name: 'Cập nhật giỏ hàng' }).click();
+      await expect(ngan).toBeHidden();
+      await expect(dong).toHaveCount(1);
+      await expect(dong.getByText(new RegExp(`/ ${ten}`))).toBeVisible();
+    } else {
+      await page.keyboard.press('Escape');
+    }
+
     await dong.getByRole('button', { name: /^Xóa / }).click();
     await expect(page.getByText('Giỏ hàng đang trống')).toBeVisible();
   });
@@ -40,6 +56,9 @@ test.describe('Giỏ hàng', () => {
     const sku = await skuConHang(3);
     await moVaChonSize(page, sku);
     await page.getByRole('button', { name: 'Mua ngay' }).click();
+    // v3: chua dang nhap van vao trang thanh toan, co nut Dang nhap
+    await expect(page).toHaveURL(/\/thanh-toan$/);
+    await page.getByText('mua không cần tài khoản').locator('..').getByRole('link', { name: 'Đăng nhập' }).click();
     await expect(page).toHaveURL(/\/dang-nhap\?tiep=%2Fthanh-toan/);
     await expect(page.getByText(/Giỏ hàng tạm của bạn sẽ được giữ lại/)).toBeVisible();
     await dangNhapUI(page, 'khach02');

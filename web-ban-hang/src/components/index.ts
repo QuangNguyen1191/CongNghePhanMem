@@ -6,6 +6,6 @@ export { QuantityStepper } from './QuantityStepper';
 export { Skeleton, LoadingRegion } from './Skeleton';
 export { EmptyState, ErrorState } from './StateBlock';
 export { Breadcrumb, type MucBreadcrumb } from './Breadcrumb';
-export { Drawer, ConfirmDialog } from './Overlay';
+export { Drawer, ConfirmDialog, InfoDialog } from './Overlay';
 export { ProductImage } from './ProductImage';
 export { PasswordField } from './PasswordField';

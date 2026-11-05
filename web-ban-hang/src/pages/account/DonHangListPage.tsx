@@ -51,6 +51,7 @@ export default function DonHangListPage() {
                   <div className={s.rowMeta}>
                     <span>Ngày đặt {formatNgay(d.ngayDat)}</span>
                     <span>Tổng <strong className="num">{formatTien(d.tongTien)}</strong></span>
+                    {d.yeuCauHuy === 'CHO_DUYET' && d.trangThai !== 'DA_HUY' && <span>Đang chờ duyệt yêu cầu hủy</span>}
                   </div>
                 </Link>
               </li>

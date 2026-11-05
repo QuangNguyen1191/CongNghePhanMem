@@ -1,5 +1,5 @@
 /* =====================================================================
-   KIEM THU CSDL QL_BanThoiTrang v2
+   KIEM THU CSDL QL_BanThoiTrang v3 (v2 + khach vang lai)
    Chay SAU khi da nap QL_BanThoiTrang_DuLieuMau.sql.
    Moi test ghi PASS / FAIL vao #ket_qua, cuoi file in tong ket.
    Phan B: moi lenh sai deu chay trong transaction roi ROLLBACK,
@@ -129,7 +129,21 @@ INSERT @tests (ten, lenh) VALUES
  (N'CHECK: trạng thái hóa đơn sai',         N'UPDATE HOA_DON SET trang_thai = ''XONG'' WHERE ma_hoa_don = ''HD00001'''),
  (N'CHECK: phương thức thanh toán đơn sai', N'UPDATE DON_DAT_HANG SET phuong_thuc_tt = ''TIEN_MAT'' WHERE ma_don = ''DH00001'''),
  (N'CHECK: số lượng chi tiết giỏ hàng = 0', N'UPDATE CHI_TIET_GIO_HANG SET so_luong = 0'),
- (N'CHECK: loại đổi trả sai',               N'UPDATE DOI_TRA_HANG SET loai = ''HUY'' WHERE ma_doi_tra = ''DT00001''');
+ (N'CHECK: loại đổi trả sai',               N'UPDATE DOI_TRA_HANG SET loai = ''HUY'' WHERE ma_doi_tra = ''DT00001'''),
+ -- v3: khach vang lai + uu dai thanh vien moi
+ (N'UNIQUE v3: 2 khách trùng số điện thoại',  N'INSERT KHACH_HANG (ma_kh, ho_ten, sdt) VALUES (''KHX3'', N''Trùng SĐT'', ''0987000021'')'),
+ (N'CHECK v3: nguồn đơn hàng sai',            N'UPDATE DON_DAT_HANG SET nguon = ''FACEBOOK'' WHERE ma_don = ''DH00001'''),
+ (N'FK v3: đơn ghi khuyến mãi không tồn tại', N'UPDATE DON_DAT_HANG SET ma_km = ''KMX'' WHERE ma_don = ''DH00001'''),
+ (N'CHECK v3: mục đích OTP sai',              N'INSERT MA_OTP (sdt, muc_dich, ma_bam, han_dung) VALUES (''0987000021'', ''XEM'', ''x'', DATEADD(MINUTE, 5, SYSDATETIME()))'),
+ (N'CHECK v3: OTP hết hạn trước khi tạo',     N'INSERT MA_OTP (sdt, muc_dich, ma_bam, han_dung) VALUES (''0987000021'', ''MUA_HANG'', ''x'', DATEADD(MINUTE, -1, SYSDATETIME()))'),
+ (N'CHECK v3: ưu đãi thành viên mới 0 đơn',   N'UPDATE CT_KM_THANH_VIEN_MOI SET so_don_dau = 0'),
+ (N'CHECK v3: hình thức khuyến mãi sai',      N'UPDATE KHUYEN_MAI SET hinh_thuc = ''QUA_TANG'' WHERE ma_km = ''KM06'''),
+ (N'CHECK v3: trạng thái yêu cầu hủy sai',     N'UPDATE DON_DAT_HANG SET yeu_cau_huy = ''XIN'' WHERE ma_don = ''DH00072'''),
+ (N'CHECK v3: người hủy sai',                  N'UPDATE DON_DAT_HANG SET nguoi_huy = ''SHIPPER'' WHERE ma_don = ''DH00073'''),
+ (N'CHECK v3: hoàn tiền số tiền = 0',          N'INSERT HOAN_TIEN (ma_hoan_tien, ma_don, ma_hoa_don, so_tien, phuong_thuc) VALUES (''HTX'', ''DH00071'', ''HD00248'', 0, ''ONLINE'')'),
+ (N'CHECK v3: đã hoàn mà không có ngày hoàn',  N'INSERT HOAN_TIEN (ma_hoan_tien, ma_don, ma_hoa_don, so_tien, phuong_thuc, trang_thai) VALUES (''HTX'', ''DH00071'', ''HD00248'', 1000, ''ONLINE'', ''DA_HOAN'')'),
+ (N'UNIQUE v3: 1 đơn hoàn tiền 2 lần',         N'INSERT HOAN_TIEN (ma_hoan_tien, ma_don, ma_hoa_don, so_tien, phuong_thuc) VALUES (''HTX1'', ''DH00071'', ''HD00248'', 1000, ''ONLINE''), (''HTX2'', ''DH00071'', ''HD00248'', 1000, ''ONLINE'')'),
+ (N'FK v3: hoàn tiền cho đơn không tồn tại',   N'INSERT HOAN_TIEN (ma_hoan_tien, ma_don, ma_hoa_don, so_tien, phuong_thuc) VALUES (''HTX'', ''DHX'', ''HD00248'', 1000, ''ONLINE'')');
 
 DECLARE @i int = 1, @n int = (SELECT COUNT(*) FROM @tests), @ten nvarchar(200), @lenh nvarchar(max);
 WHILE @i <= @n

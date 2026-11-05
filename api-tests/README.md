@@ -1,6 +1,6 @@
 # Kiểm thử API backend bằng Playwright
 
-105 test gọi thẳng HTTP vào WebApi (không cần trình duyệt), phủ toàn bộ 16 controller: đăng nhập theo nơi, phân quyền
+116 test gọi thẳng HTTP vào WebApi (không cần trình duyệt), phủ toàn bộ 18 controller (kể cả khách mua không cần tài khoản, v3): đăng nhập theo nơi, phân quyền
 ADMIN / NHAN_VIEN / KHACH_HANG / chưa đăng nhập, CRUD danh mục, giỏ hàng, luồng đơn online (đặt, xác nhận, giao, hoàn tất, hủy),
 bán tại quầy, phiếu nhập, đổi trả, khuyến mãi, thống kê 2 cách, tìm kiếm nâng cao, Excel, PDF, nhật ký SQL.
 
@@ -12,10 +12,14 @@ bán tại quầy, phiếu nhập, đổi trả, khuyến mãi, thống kê 2 c�
 | `tests/04-khuyen-mai.spec.ts` | Tính tiền (voucher, mức hóa đơn, KM sản phẩm), CRUD khuyến mãi, kết thúc KM |
 | `tests/05-ban-hang.spec.ts` | Giỏ hàng, đơn online COD / chuyển khoản, bán tại quầy, main-sub hóa đơn, PDF, xem chứng từ người khác |
 | `tests/06-kho-doi-tra.spec.ts` | Phiếu nhập, đổi / trả hàng (hoàn tiền theo giá thực trả, quá 30 ngày) |
+| `tests/08-vang-lai.spec.ts` | v3: OTP (sai SĐT, gửi lại quá sớm, nhập sai), đặt / tra cứu / hủy đơn không cần tài khoản, token vãng lai không gọi được API khác, chống đơn ảo, nhân viên lọc đơn + xem rủi ro SĐT, đăng ký phải có OTP, gắn đơn cũ, ưu đãi 3 đơn đầu |
+| `tests/09-huy-don.spec.ts` | v3: hủy ngay khi chờ xác nhận, xin hủy đơn đã xác nhận → chặn giao → duyệt (trả kho, hủy HĐ, phiếu hoàn tiền → đã hoàn) / từ chối (bắt buộc lý do), đang giao không hủy được, khách vãng lai xin hủy không bị tính bom hàng |
 | `tests/07-bao-cao.spec.ts` | Thống kê 5a-5e (2 cách ra cùng kết quả, Excel, PDF), tìm kiếm nâng cao, Excel xuất / đọc / nhập, nhật ký SQL, Swagger, CORS |
 
 Mỗi test tự tạo sản phẩm / khách / hóa đơn riêng (tên có hậu tố theo thời gian) nên chạy lại nhiều lần trên cùng CSDL vẫn được.
-Sau khi chạy, `database/KiemThu_QL_BanThoiTrang.sql` vẫn ra 43/43 PASS.
+Sau khi chạy, `database/KiemThu_QL_BanThoiTrang.sql` vẫn ra 56/56 PASS.
+
+Test đăng ký và khách vãng lai cần API chạy ở môi trường Development (`dotnet run` mặc định đã vậy) để API trả mã OTP demo (`Otp:HienMaDemo`).
 
 ## Chạy
 

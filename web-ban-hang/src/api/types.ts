@@ -56,6 +56,10 @@ export interface BangTinhTien {
   tongTien: number;
   maKm?: string | null;
   ghiChuKm?: string | null;
+  /** v3: loai giam da ap dung: HOA_DON | VOUCHER | THANH_VIEN_MOI (null: khong giam) */
+  loaiGiam?: 'HOA_DON' | 'VOUCHER' | 'THANH_VIEN_MOI' | null;
+  /** ma voucher THUC SU duoc ap (null neu uu dai thanh vien moi tot hon voucher da nhap) */
+  maVoucher?: string | null;
 }
 
 export interface ChiTietGioHang {
@@ -109,6 +113,20 @@ export interface DonDatHang {
   tenKhachHang?: string | null;
   tenNhanVien?: string | null;
   maHoaDon?: string | null;
+  /** v3: TAI_KHOAN | VANG_LAI */
+  nguon?: 'TAI_KHOAN' | 'VANG_LAI';
+  emailNhan?: string | null;
+  maKm?: string | null;
+  /** v3: khach xin huy don da xac nhan: CHO_DUYET -> DA_DUYET (da huy) | TU_CHOI (kem phanHoiHuy) */
+  yeuCauHuy?: 'CHO_DUYET' | 'DA_DUYET' | 'TU_CHOI' | null;
+  lyDoHuy?: string | null;
+  ngayYeuCauHuy?: string | null;
+  phanHoiHuy?: string | null;
+  ngayHuy?: string | null;
+  nguoiHuy?: 'KHACH' | 'NHAN_VIEN' | null;
+  /** don da tra truoc bi huy: CHO_HOAN -> DA_HOAN */
+  trangThaiHoanTien?: 'CHO_HOAN' | 'DA_HOAN' | null;
+  soTienHoan?: number | null;
   chiTiets: ChiTietDonDatHang[];
 }
 
@@ -180,4 +198,49 @@ export interface PhienDangNhap {
   maKh?: string | null;
   hoTen: string;
   token: string;
+  /** v3: so don mua khong can tai khoan vua duoc gan vao tai khoan moi (khi dang ky) */
+  soDonDaGan?: number | null;
+}
+
+// ---- v3: khach vang lai (mua khong can tai khoan) ----
+export type MucDichOtp = 'MUA_HANG' | 'TRA_CUU' | 'DANG_KY';
+
+export interface KetQuaGuiOtp {
+  sdt: string;
+  hetHanSauGiay: number;
+  guiLaiSauGiay: number;
+  /** chi co o che do demo (OTP gia lap) */
+  maDemo?: string | null;
+}
+
+export interface PhienVangLai {
+  sdt: string;
+  token: string;
+  hetHan: string;
+  coTaiKhoan: boolean;
+  hoTen?: string | null;
+  email?: string | null;
+  diaChi?: string | null;
+  soDonCu: number;
+}
+
+export interface DatHangVangLaiYeuCau {
+  hoTen: string;
+  email?: string;
+  diaChiGiao: string;
+  phuongThucTt: PhuongThucTt;
+  maVoucher?: string;
+  dongHangs: DongHang[];
+}
+
+export interface UuDaiThanhVienMoi {
+  maKm: string;
+  tenKm: string;
+  soDonDau: number;
+  phanTramGiamGia: number;
+  giamToiDa?: number | null;
+  ngayKt: string;
+  /** chi co khi da dang nhap */
+  daDung?: number | null;
+  conLai?: number | null;
 }

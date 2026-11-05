@@ -11,7 +11,7 @@ WebApi (lớp giao diện cho 2 web)   App admin WinForms (giai đoạn sau, g�
               |
              DAL  - toàn bộ câu SQL (Dapper), ghi nhật ký file + dòng code chạy truy vấn
               |
-           SQL Server (database/QL_BanThoiTrang_v2.sql)
+           SQL Server (database/QL_BanThoiTrang_v3.sql)
 DTO: đối tượng truyền dữ liệu giữa các lớp
 ```
 
@@ -21,13 +21,13 @@ Lớp giao diện không gọi DAL. Cấu hình kết nối và nhật ký SQL �
 | --- | --- |
 | DTO | Lớp dữ liệu: sản phẩm, khách, nhân viên, đơn, hóa đơn, phiếu nhập, đổi trả, bảng thống kê... |
 | DAL | `DbHelper` (mọi câu SQL chạy qua đây), `NhatKySql`, các lớp `...DAL` theo bảng |
-| BLL | `TaiKhoanBLL`, `DanhMucBLL`, `NhanSuBLL`, `KhuyenMaiBLL`, `BanHangBLL`, `KhoBLL`, `ThongKeBLL`, `TimKiemBLL`, `ExcelBLL`, `PdfBLL` |
-| WebApi | 16 controller, JWT, Swagger |
-| Tests | 43 test tích hợp chạy trên CSDL có dữ liệu mẫu |
+| BLL | `TaiKhoanBLL`, `XacThucBLL` (OTP, v3), `DanhMucBLL`, `NhanSuBLL`, `KhuyenMaiBLL`, `BanHangBLL`, `KhoBLL`, `ThongKeBLL`, `TimKiemBLL`, `ExcelBLL`, `PdfBLL` |
+| WebApi | 18 controller, JWT, Swagger |
+| Tests | 60 test tích hợp chạy trên CSDL có dữ liệu mẫu (khách vãng lai: `VangLaiTest.cs`, hủy đơn: `HuyDonTest.cs`) |
 
 ## Chạy
 
-1. Tạo CSDL: chạy `database/QL_BanThoiTrang_v2.sql` rồi `database/QL_BanThoiTrang_DuLieuMau.sql` (xem `database/README.md`).
+1. Tạo CSDL: chạy `database/QL_BanThoiTrang_v3.sql` rồi `database/QL_BanThoiTrang_DuLieuMau.sql` (xem `database/README.md`).
 2. Sửa chuỗi kết nối trong `WebApi/appsettings.json` nếu cần. Mặc định dùng Windows Authentication:
    `Server=localhost;Database=QL_BanThoiTrang;Trusted_Connection=True;TrustServerCertificate=True`
    (SQL Express thì đổi `Server=localhost\\SQLEXPRESS`).
@@ -39,7 +39,7 @@ Lớp giao diện không gọi DAL. Cấu hình kết nối và nhật ký SQL �
 Chạy test: sửa chuỗi kết nối qua biến môi trường `QLBTT_KET_NOI` (mặc định `sa` / `Strong!Pass123` trên localhost), rồi
 `dotnet test Tests`. Test có tạo thêm hóa đơn, đơn, phiếu nhập; muốn sạch thì tạo lại CSDL.
 
-Test API bằng Playwright (105 test, gọi HTTP vào WebApi đang chạy): xem `../api-tests/README.md`.
+Test API bằng Playwright (116 test, gọi HTTP vào WebApi đang chạy): xem `../api-tests/README.md`.
 
 ## Đăng nhập theo nơi
 
@@ -50,6 +50,38 @@ Test API bằng Playwright (105 test, gọi HTTP vào WebApi đang chạy): xem 
 | `POST /api/tai-khoan/dang-nhap/app-admin` | ADMIN (app desktop gọi `TaiKhoanBLL.DangNhap(..., NoiDangNhap.AppAdmin)`) |
 
 Lỗi nghiệp vụ trả về 400 (không tìm thấy: 404) với body `{ "thongBao": "..." }` tiếng Việt.
+
+## v3: Khách mua không cần tài khoản (`api/vang-lai`)
+
+1. `POST /api/vang-lai/otp` `{ sdt, mucDich: MUA_HANG | TRA_CUU | DANG_KY }`: gửi mã 6 số. Hiện là **OTP giả lập**:
+   mã in ra console WebApi, và khi `Otp:HienMaDemo = true` (bật sẵn trong `appsettings.Development.json`) API trả luôn `maDemo`
+   để web hiện lên màn hình. Muốn gửi SMS / email thật: viết lớp cài `IGuiOtp` rồi gán `XacThucBLL.BoGui`.
+2. `POST /api/vang-lai/xac-thuc` `{ sdt, ma }`: đúng mã thì nhận token vai trò `VANG_LAI` (30 phút, chỉ dùng được cho `/api/vang-lai/*`).
+3. Với token đó: `POST don-hang` (gửi kèm `dongHangs` vì giỏ nằm ở trình duyệt), `GET don-hang`, `GET don-hang/{ma}`,
+   `POST don-hang/{ma}/huy`, `GET don-hang/{ma}/pdf`, `GET phien`.
+
+Chống đơn ảo (hằng số trong `ChungBLL.QuyTac`): mã hết hạn 5 phút, sai 5 lần phải gửi mã mới, 60 giây mới gửi lại, tối đa 5 mã / SĐT / ngày,
+giới hạn theo IP (`Otp:ToiDaMoiIpMoiGio`); khách vãng lai tối đa 5 cái / sản phẩm, 2 đơn đang chờ / SĐT, COD tối đa 5.000.000đ;
+SĐT đã "bom hàng" 2 lần (đơn bị hủy sau khi đã lập hóa đơn) không được chọn COD. Nhân viên xem mức rủi ro: `GET /api/khach-hang/rui-ro/{sdt}`,
+lọc đơn: `GET /api/don-hang?nguon=VANG_LAI`.
+
+Đăng ký (`POST /api/tai-khoan/dang-ky`) bắt buộc SĐT và `phienXacThuc` (token OTP của đúng SĐT đó). Đơn cũ của SĐT tự gắn vào tài khoản mới
+(`soDonDaGan`). Ưu đãi thành viên mới (`GET /api/khuyen-mai/thanh-vien-moi`): giảm 10% cho 3 đơn đầu đặt bằng tài khoản, tối đa 100.000đ / đơn,
+không cộng dồn, chỉ thay voucher / KM hóa đơn khi giảm nhiều hơn.
+
+## v3: Hủy đơn và hoàn tiền
+
+| Trạng thái đơn | Khách (`POST /api/don-hang/{ma}/yeu-cau-huy` hoặc `/api/vang-lai/don-hang/{ma}/yeu-cau-huy`, body `{ lyDo }`) |
+| --- | --- |
+| `CHO_XAC_NHAN` | Hủy ngay (chưa trừ kho, chưa có hóa đơn) |
+| `DA_XAC_NHAN` | Gửi yêu cầu (`yeu_cau_huy = CHO_DUYET`), mỗi đơn 1 lần. Nhân viên không giao được đơn đang có yêu cầu |
+| `DANG_GIAO` trở đi | Không hủy trực tuyến được (liên hệ hotline / từ chối nhận hàng) |
+
+Nhân viên: `POST /api/don-hang/{ma}/duyet-huy` (hủy: trả kho, hủy hóa đơn, tính lại điểm, **không tính bom hàng**),
+`POST /api/don-hang/{ma}/tu-choi-huy` `{ lyDo }` (bắt buộc lý do cho khách), lọc `GET /api/don-hang?yeuCauHuy=CHO_DUYET`,
+`POST /api/don-hang/{ma}/huy` `{ lyDo? }` (nhân viên tự hủy, vd khách không nhận hàng: tính bom hàng).
+Hóa đơn đã thanh toán (chuyển khoản / online) bị hủy thì tự sinh phiếu `HOAN_TIEN` chờ hoàn:
+`GET /api/hoan-tien?trangThai=CHO_HOAN`, `POST /api/hoan-tien/{ma}/da-hoan` `{ lyDo? }` (ghi chú).
 
 ## 9 yêu cầu đồ án nằm ở đâu
 
@@ -63,7 +95,7 @@ Lỗi nghiệp vụ trả về 400 (không tìm thấy: 404) với body `{ "thon
 | 6. Tìm nâng cao, hợp và giao | `POST /api/tim-kiem/hoa-don|khach-hang|san-pham` với `>, <, >=, <=, =, <>, LIKE, IN`, `khopTatCa` true = giao (AND), false = hợp (OR). Thêm `GET /api/khach-hang/hai-tinh-hop` (UNION) và `o-tinh-a-giao-tinh-b`, `vua-tai-quay-vua-online` (INTERSECT) |
 | 7. Excel | `ExcelBLL`, `api/excel`: xuất danh sách, tải file mẫu, đọc file (xem trước + lỗi từng dòng) rồi mới ghi |
 | 8. PDF | `PdfBLL`: hóa đơn, đơn đặt hàng, phiếu nhập, phiếu đổi trả, báo cáo thống kê. Font tiếng Việt nhúng sẵn trong BLL (`BLL/Fonts`, DejaVu Sans) |
-| 9. Bàn phím | Làm ở giao diện (giai đoạn web và app) |
+| 9. Bàn phím | Web bán hàng: phím tắt toàn trang (`/`, `?`, `g`+chữ, `a`, `f`, `Ctrl+Enter`...) trong `web-ban-hang/src/features/phimTat`, bảng phím tắt mở bằng `?` (xem `web-ban-hang/README.md`). Web staff và app admin: làm ở giai đoạn sau |
 
 ## Thư viện
 

@@ -46,19 +46,35 @@ public class TaiKhoanBLL
         return phien;
     }
 
-    // Khach tu dang ky tren web. Neu SDT trung khach da mua tai quay (chua co tai khoan) thi gan tai khoan vao khach do.
-    public PhienDangNhapDTO DangKy(string tenDangNhap, string matKhau, KhachHangDTO kh)
+    // Khach tu dang ky tren web. Neu SDT trung khach da mua tai quay / mua vang lai (chua co tai khoan)
+    // thi gan tai khoan vao khach do: don hang, hoa don, diem cu hien ngay trong tai khoan.
+    // v3: SDT bat buoc va phai da xac thuc OTP (sdtDaXacThuc lay tu phien khach vang lai) -> khong ai dang ky
+    // bang SDT cua nguoi khac de xem don cua ho duoc. Ho so de trong thi lay tu ho so khach cu.
+    public PhienDangNhapDTO DangKy(string tenDangNhap, string matKhau, KhachHangDTO kh, string? sdtDaXacThuc)
     {
         tenDangNhap = tenDangNhap.Trim();
         QuyTac.KiemTra(tenDangNhap.Length >= 4, "Tên đăng nhập phải có ít nhất 4 ký tự");
         KiemTraMatKhau(matKhau);
-        QuyTac.KiemTra(!string.IsNullOrWhiteSpace(kh.HoTen), "Vui lòng nhập họ tên");
         QuyTac.KiemTra(!_tkDal.TonTaiTenDangNhap(tenDangNhap), "Tên đăng nhập đã tồn tại");
         kh.Email = QuyTac.RongThanhNull(kh.Email);
-        kh.Sdt = QuyTac.RongThanhNull(kh.Sdt);
+        kh.Sdt = QuyTac.ChuanHoaSdt(kh.Sdt) ?? sdtDaXacThuc;
+        QuyTac.KiemTra(kh.Sdt != null, "Vui lòng nhập số điện thoại");
+        QuyTac.KiemTra(sdtDaXacThuc != null && kh.Sdt == sdtDaXacThuc,
+            "Vui lòng xác thực số điện thoại bằng mã OTP trước khi đăng ký");
+        kh.SdtDaXacThuc = true;
 
-        var khCu = kh.Sdt == null ? null : _khDal.LayTheoSdt(kh.Sdt);
-        QuyTac.KiemTra(khCu?.MaTk == null, "Số điện thoại đã được đăng ký tài khoản");
+        var khCu = _khDal.LayTheoSdt(kh.Sdt!);
+        QuyTac.KiemTra(khCu?.MaTk == null, "Số điện thoại đã được đăng ký tài khoản, vui lòng đăng nhập");
+        if (khCu != null)
+        {
+            kh.HoTen = string.IsNullOrWhiteSpace(kh.HoTen) ? khCu.HoTen : kh.HoTen;
+            kh.Email ??= khCu.Email;
+            kh.DiaChi = QuyTac.RongThanhNull(kh.DiaChi) ?? khCu.DiaChi;
+            kh.TinhThanh = QuyTac.RongThanhNull(kh.TinhThanh) ?? khCu.TinhThanh;
+            kh.NgaySinh ??= khCu.NgaySinh;
+        }
+        QuyTac.KiemTra(!string.IsNullOrWhiteSpace(kh.HoTen), "Vui lòng nhập họ tên");
+        kh.HoTen = kh.HoTen.Trim();
         if (kh.Email != null)
             QuyTac.KiemTra(!_khDal.TrungEmail(kh.Email, khCu?.MaKh), "Email đã được sử dụng");
 
@@ -82,7 +98,9 @@ public class TaiKhoanBLL
                 _khDal.Them(kh, tx);
             }
         });
-        return DangNhap(tenDangNhap, matKhau, NoiDangNhap.WebBanHang);
+        var phien = DangNhap(tenDangNhap, matKhau, NoiDangNhap.WebBanHang);
+        phien.SoDonDaGan = khCu == null ? 0 : new DonDatHangDAL().LayTheoKhach(khCu.MaKh).Count;
+        return phien;
     }
 
     public void DoiMatKhau(string maTk, string matKhauCu, string matKhauMoi)

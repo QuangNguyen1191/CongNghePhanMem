@@ -75,6 +75,30 @@ public class KhachHangBLL
 
     public KhachHangDTO? TimTheoSdt(string sdt) => _dal.LayTheoSdt(sdt.Trim());
 
+    // v3: web staff xem lich su 1 SDT truoc khi xac nhan don (nhat la don khach vang lai)
+    // maKh (tuy chon): don cua khach co tai khoan nhung nhap SDT nguoi nhan khac SDT tai khoan
+    // thi van xem duoc lich su cua khach do, khong bao nham "khach moi".
+    public RuiRoKhachDTO RuiRo(string sdt, string? maKh = null)
+    {
+        sdt = QuyTac.ChuanHoaSdt(sdt) ?? "";
+        var kh = _dal.LayTheoSdt(sdt) ?? (string.IsNullOrWhiteSpace(maKh) ? null : _dal.LayTheoMa(maKh.Trim()));
+        if (kh == null)
+            return new RuiRoKhachDTO { Sdt = sdt, DuocDatCod = true, MucRuiRo = "TRUNG_BINH", GhiChu = "Khách mới, chưa có lịch sử mua hàng" };
+        var r = new DonDatHangDAL().DemLichSu(kh.MaKh);
+        (r.Sdt, r.MaKh, r.HoTen, r.CoTaiKhoan, r.SdtDaXacThuc) = (sdt, kh.MaKh, kh.HoTen, kh.MaTk != null, kh.SdtDaXacThuc);
+        r.DuocDatCod = r.SoLanBomHang < QuyTac.SoLanBomChanCod;
+        (r.MucRuiRo, r.GhiChu) = r switch
+        {
+            { SoLanBomHang: >= QuyTac.SoLanBomChanCod } =>
+                ("CAO", $"{r.SoLanBomHang} lần không nhận hàng. Không cho COD, nên gọi xác nhận trước khi giao"),
+            { SoLanBomHang: > 0 } or { SoDonBiTuChoi: >= 2 } =>
+                ("TRUNG_BINH", "Có lịch sử không nhận hàng / bị từ chối, nên gọi xác nhận"),
+            { SoDonHoanTat: 0 } => ("TRUNG_BINH", "Chưa có đơn hoàn tất nào, nên gọi xác nhận"),
+            _ => ("THAP", $"Đã nhận hàng thành công {r.SoDonHoanTat} đơn")
+        };
+        return r;
+    }
+
     // Nhan vien them khach tai quay (khong co tai khoan)
     public KhachHangDTO ThemTaiQuay(KhachHangDTO k)
     {

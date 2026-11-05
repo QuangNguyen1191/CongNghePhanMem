@@ -104,8 +104,13 @@ public class DoiTraBLL
 
     public DoiTraDTO LayTheoMa(string ma) => QuyTac.CanCo(_dal.LayTheoMa(ma), "Không tìm thấy phiếu đổi trả");
 
-    public List<DoiTraDTO> LayDanhSach(string? trangThai = null, string? maKh = null) =>
-        _dal.LayDanhSach(QuyTac.RongThanhNull(trangThai), QuyTac.RongThanhNull(maKh));
+    // Kem chi tiet tung phieu: web khach can biet SP nao da yeu cau de tinh so luong con duoc doi / tra
+    public List<DoiTraDTO> LayDanhSach(string? trangThai = null, string? maKh = null)
+    {
+        var ds = _dal.LayDanhSach(QuyTac.RongThanhNull(trangThai), QuyTac.RongThanhNull(maKh));
+        foreach (var d in ds) d.ChiTiets = _dal.LayChiTiet(d.MaDoiTra);
+        return ds;
+    }
 
     // Duyet: dong y cho doi / tra, cho khach mang hang toi
     public void Duyet(string ma, string maNv) =>

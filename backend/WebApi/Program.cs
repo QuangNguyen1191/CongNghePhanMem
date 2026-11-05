@@ -16,23 +16,29 @@ ThongTinCuaHang.Ten = cauHinh["CuaHang:Ten"] ?? ThongTinCuaHang.Ten;
 ThongTinCuaHang.DiaChi = cauHinh["CuaHang:DiaChi"] ?? "";
 ThongTinCuaHang.Sdt = cauHinh["CuaHang:Sdt"] ?? "";
 
+// ---- v3: OTP gia lap cho khach vang lai. HienMaDemo = true: API tra luon ma de web hien (chi dung khi demo / test)
+XacThucBLL.HienMaDemo = cauHinh.GetValue("Otp:HienMaDemo", false);
+XacThucBLL.ToiDaMoiIpMoiGio = cauHinh.GetValue("Otp:ToiDaMoiIpMoiGio", QuyTac.OtpToiDaMoiIpMoiGio);
+
 // ---- JWT: token chua ma TK, vai tro, ma NV / ma KH
 var jwt = new CauHinhJwt(cauHinh["Jwt:Key"]!, cauHinh["Jwt:Issuer"] ?? "QLBanThoiTrang", cauHinh.GetValue("Jwt:SoGio", 12));
 builder.Services.AddSingleton(jwt);
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(o =>
 {
     o.MapInboundClaims = false;
-    o.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidIssuer = jwt.Issuer, ValidAudience = jwt.Issuer,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Key)),
-        RoleClaimType = TenClaim.VaiTro, NameClaimType = TenClaim.TenDangNhap
-    };
+    o.TokenValidationParameters = TaoToken.ThamSoKiemTra(jwt);
     // Tai khoan bi khoa / nhan vien nghi viec: token cu het hieu luc ngay (khong doi het 12 gio)
     o.Events = new JwtBearerEvents
     {
         OnTokenValidated = ctx =>
         {
+            // v3: phien khach vang lai khong gan tai khoan nao (tu het han sau 30 phut) va CHI dung duoc o /api/vang-lai.
+            // Cac API khac chi kiem [Authorize] chung (vd xem don theo ma) nen khong de token nay lot vao.
+            if (ctx.Principal?.FindFirst(TenClaim.VaiTro)?.Value == VaiTro.VangLai)
+            {
+                if (!ctx.HttpContext.Request.Path.StartsWithSegments("/api/vang-lai")) ctx.Fail("Phiên khách vãng lai chỉ dùng cho mua hàng / tra cứu đơn");
+                return Task.CompletedTask;
+            }
             var maTk = ctx.Principal?.FindFirst(TenClaim.MaTk)?.Value;
             if (maTk == null || !new TaiKhoanBLL().ConHoatDong(maTk)) ctx.Fail("Tài khoản đã bị khóa");
             return Task.CompletedTask;

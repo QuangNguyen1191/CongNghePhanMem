@@ -9,3 +9,6 @@
 .note { color: var(--c-ink-2); }
 .bottom { border-top: 1px solid var(--c-line); padding-block: var(--s-4); color: var(--c-muted); }
 @media (min-width: 1024px) { .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.linkBtn { text-align: left; color: inherit; }
+.linkBtn:hover { text-decoration: underline; text-underline-offset: 3px; }
+.kbd { display: inline-block; min-width: 20px; padding: 0 5px; margin-left: 4px; text-align: center; font: 600 11px/18px var(--font-sans); border: 1px solid currentColor; border-radius: 2px; opacity: .7; }

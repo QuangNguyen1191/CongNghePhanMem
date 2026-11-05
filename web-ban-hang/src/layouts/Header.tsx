@@ -22,12 +22,19 @@ function AnnouncementBar() {
 function SearchForm({ id, autoFocus }: { id: string; autoFocus?: boolean }) {
   const [params] = useSearchParams();
   const { pathname } = useLocation();
-  const [q, setQ] = useState(pathname === '/tim-kiem' ? params.get('q') ?? '' : '');
+  const tuUrl = pathname === '/tim-kiem' ? params.get('q') ?? '' : '';
+  const [q, setQ] = useState(tuUrl);
+  const [loi, setLoi] = useState('');
+  // URL doi (back/forward, bam link tim kiem khac) -> o tim hien dung tu khoa dang xem
+  useEffect(() => { setQ(tuUrl); setLoi(''); }, [tuUrl]);
   const navigate = useNavigate();
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    const t = q.trim();
-    if (t) navigate(`/tim-kiem?q=${encodeURIComponent(t)}`);
+    const t = q.trim().replace(/\s+/g, ' ');
+    if (!t) return;
+    if (t.length < 2) { setLoi('Nhập ít nhất 2 ký tự'); return; }
+    setLoi('');
+    navigate(`/tim-kiem?q=${encodeURIComponent(t)}`);
   };
   return (
     <form role="search" className={s.search} onSubmit={submit}>
@@ -37,12 +44,16 @@ function SearchForm({ id, autoFocus }: { id: string; autoFocus?: boolean }) {
         id={id}
         type="search"
         value={q}
-        onChange={(e) => setQ(e.target.value)}
+        onChange={(e) => { setQ(e.target.value); if (loi) setLoi(''); }}
         placeholder="Tìm sản phẩm, màu sắc…"
+        aria-invalid={!!loi || undefined}
+        aria-describedby={loi ? `${id}-loi` : undefined}
+        aria-keyshortcuts="/"
         autoComplete="off"
         enterKeyHint="search"
         autoFocus={autoFocus}
       />
+      {loi && <p id={`${id}-loi`} className={s.searchLoi} role="alert">{loi}</p>}
     </form>
   );
 }

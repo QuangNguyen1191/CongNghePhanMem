@@ -5,6 +5,7 @@ import { qk } from '../../api/queryKeys';
 import type { PhienDangNhap } from '../../api/types';
 import { session } from '../../lib/session';
 import { gioTam } from '../cart/gioTam';
+import { phienVangLai } from '../../lib/phienVangLai';
 
 /** Sau khi co phien: luu phien, gop gio tam vao gio tren server. Loi gop khong chan dang nhap. */
 async function batDauPhien(p: PhienDangNhap, qc: QueryClient) {
@@ -37,7 +38,12 @@ export function useDangKy() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (yc: DangKyYeuCau) => taiKhoanApi.dangKy(yc),
-    onSuccess: (p) => batDauPhien(p, qc),
+    onSuccess: async (p) => {
+      await batDauPhien(p, qc);
+      // phien OTP da dung de chung minh SDT; tu gio xem don trong tai khoan
+      qc.removeQueries({ queryKey: ['vang-lai'] });
+      phienVangLai.xoa();
+    },
     meta: { tuXuLyLoi: true },
   });
 }

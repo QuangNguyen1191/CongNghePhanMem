@@ -1,13 +1,11 @@
 import { test, expect, APIRequestContext } from '@playwright/test';
-import { admin, anDanh, khach, loi, nhanVien, ok, RUN, taoSanPhamCoTon, BASE } from './helpers';
+import { admin, anDanh, khach, loi, nhanVien, ok, RUN, taoSanPhamCoTon, BASE, dangKy } from './helpers';
 import { request } from '@playwright/test';
 
 // Moi test tao khach moi de gio hang / diem tich luy doc lap
 async function khachMoi(ten: string) {
   const api = await anDanh();
-  const p = await ok(await api.post('/api/tai-khoan/dang-ky', {
-    data: { tenDangNhap: `${ten}${RUN}`, matKhau: '123456', khachHang: { hoTen: `Khách ${ten}`, tinhThanh: 'Hà Nội' } },
-  }));
+  const p = await ok(await dangKy(api, { tenDangNhap: `${ten}${RUN}`, matKhau: '123456', khachHang: { hoTen: `Khách ${ten}`, tinhThanh: 'Hà Nội' } }));
   const ctx = await request.newContext({ baseURL: BASE, extraHTTPHeaders: { Authorization: `Bearer ${p.token}` } });
   return { ctx, maKh: p.maKh as string };
 }
@@ -79,8 +77,8 @@ test.describe('DonHang (online)', () => {
 
     const don = await ok(await kh.post('/api/don-hang', {
       data: { diaChiGiao: '1 Tràng Tiền, Hà Nội', sdtNhan: '0900000000', tenNguoiNhan: 'Người nhận', phuongThucTt: 'COD' } }));
-    // 1.2tr >= 1tr -> giam 5%
-    expect(don).toMatchObject({ maKh, trangThai: 'CHO_XAC_NHAN', tienGiam: 60000, tongTien: 1140000 });
+    // 1.2tr: KM hoa don giam 5% = 60.000d, nhung khach moi co uu dai thanh vien moi 10% (toi da 100.000d) cao hon -> lay 100.000d
+    expect(don).toMatchObject({ maKh, trangThai: 'CHO_XAC_NHAN', tienGiam: 100000, tongTien: 1100000, maKm: 'KM06' });
     expect(don.chiTiets).toHaveLength(1);
     expect((await ok(await kh.get('/api/gio-hang'))).chiTiets).toHaveLength(0);
     expect(await ton(ad, sp.maSp)).toBe(10);           // chua tru ton
@@ -95,7 +93,7 @@ test.describe('DonHang (online)', () => {
 
     await loi(await nv.post(`/api/don-hang/${don.maDon}/giao-hang`), 400);
     const hd = await ok(await nv.post(`/api/don-hang/${don.maDon}/xac-nhan`));
-    expect(hd).toMatchObject({ maDon: don.maDon, maKh, trangThai: 'CHO_THANH_TOAN', tongTien: 1140000, maKm: 'KM02' });
+    expect(hd).toMatchObject({ maDon: don.maDon, maKh, trangThai: 'CHO_THANH_TOAN', tongTien: 1100000, maKm: 'KM06' });
     expect(await ton(ad, sp.maSp)).toBe(7);
     await loi(await nv.post(`/api/don-hang/${don.maDon}/xac-nhan`), 400);
     await loi(await kh.post(`/api/don-hang/${don.maDon}/khach-huy`), 400, /đã được xác nhận/);
@@ -106,7 +104,7 @@ test.describe('DonHang (online)', () => {
     expect(sau).toMatchObject({ trangThai: 'HOAN_TAT', maHoaDon: hd.maHoaDon });
     expect((await ok(await kh.get(`/api/hoa-don/${hd.maHoaDon}`))).trangThai).toBe('DA_THANH_TOAN');
     const toi = await ok(await kh.get('/api/khach-hang/toi'));
-    expect(toi.diemTichLuy).toBe(114);                 // 1.140.000 / 10.000
+    expect(toi.diemTichLuy).toBe(110);                 // 1.100.000 / 10.000
 
     const pdf = await kh.get(`/api/don-hang/${don.maDon}/pdf`);
     expect(pdf.status()).toBe(200);
