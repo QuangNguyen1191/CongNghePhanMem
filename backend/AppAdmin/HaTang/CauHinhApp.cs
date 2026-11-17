@@ -9,9 +9,12 @@ public static class CauHinhApp
     private static readonly string DuongDan = Path.Combine(AppContext.BaseDirectory, "appsettings.json");
     private static JsonObject _goc = new();
 
+    // Bien moi truong ConnectionStrings__QLBanThoiTrang (cung quy uoc voi WebApi) duoc uu tien hon file:
+    // demo/2_CHAY_DEMO.bat dung de tro ca WebApi lan App Admin vao dung may chu SQL (localhost hoac SQL Express).
     public static string ChuoiKetNoi
     {
-        get => Lay("ConnectionStrings", "QLBanThoiTrang")
+        get => Environment.GetEnvironmentVariable("ConnectionStrings__QLBanThoiTrang") is { Length: > 0 } bien ? bien
+               : Lay("ConnectionStrings", "QLBanThoiTrang")
                ?? "Server=localhost;Database=QL_BanThoiTrang;Trusted_Connection=True;TrustServerCertificate=True";
         set => Dat("ConnectionStrings", "QLBanThoiTrang", value);
     }
