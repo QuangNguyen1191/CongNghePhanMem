@@ -5,7 +5,7 @@ Dùng chung cho 3 giao diện: web bán hàng (khách), web staff (nhân viên),
 ## Các lớp
 
 ```
-WebApi (lớp giao diện cho 2 web)   App admin WinForms (giai đoạn sau, gọi thẳng BLL)
+WebApi (lớp giao diện cho 2 web)   AppAdmin (WinForms, gọi thẳng BLL)
             \                         /
              BLL  - quy tắc nghiệp vụ, thống kê 2 cách, tìm kiếm nâng cao, Excel, PDF
               |
@@ -24,6 +24,7 @@ Lớp giao diện không gọi DAL. Cấu hình kết nối và nhật ký SQL �
 | BLL | `TaiKhoanBLL`, `XacThucBLL` (OTP, v3), `DanhMucBLL`, `NhanSuBLL`, `KhuyenMaiBLL`, `BanHangBLL`, `KhoBLL`, `ThongKeBLL`, `TimKiemBLL`, `ExcelBLL`, `PdfBLL` |
 | WebApi | 18 controller, JWT, Swagger |
 | Tests | 60 test tích hợp chạy trên CSDL có dữ liệu mẫu (khách vãng lai: `VangLaiTest.cs`, hủy đơn: `HuyDonTest.cs`) |
+| AppAdmin | App desktop admin WinForms .NET 8 (16 màn hình, đủ 13 chức năng + 9 yêu cầu), xem `AppAdmin/README.md` |
 
 ## Chạy
 
@@ -31,7 +32,7 @@ Lớp giao diện không gọi DAL. Cấu hình kết nối và nhật ký SQL �
 2. Sửa chuỗi kết nối trong `WebApi/appsettings.json` nếu cần. Mặc định dùng Windows Authentication:
    `Server=localhost;Database=QL_BanThoiTrang;Trusted_Connection=True;TrustServerCertificate=True`
    (SQL Express thì đổi `Server=localhost\\SQLEXPRESS`).
-3. Mở `QLBanThoiTrang.sln` bằng Visual Studio 2022, đặt WebApi làm startup project, F5.
+3. Mở `QLBanThoiTrang.sln` bằng Visual Studio 2022, đặt WebApi làm startup project, F5 (app desktop: đặt `AppAdmin` làm startup project).
    Hoặc dòng lệnh: `dotnet run --project WebApi`, rồi mở http://localhost:5212/swagger
 4. Trong Swagger: gọi `POST /api/tai-khoan/dang-nhap/web-staff` với `quanly` / `123456`, copy `token`,
    bấm Authorize và dán vào để thử các API khác.
@@ -95,7 +96,7 @@ Hóa đơn đã thanh toán (chuyển khoản / online) bị hủy thì tự sin
 | 6. Tìm nâng cao, hợp và giao | `POST /api/tim-kiem/hoa-don|khach-hang|san-pham` với `>, <, >=, <=, =, <>, LIKE, IN`, `khopTatCa` true = giao (AND), false = hợp (OR). Thêm `GET /api/khach-hang/hai-tinh-hop` (UNION) và `o-tinh-a-giao-tinh-b`, `vua-tai-quay-vua-online` (INTERSECT) |
 | 7. Excel | `ExcelBLL`, `api/excel`: xuất danh sách, tải file mẫu, đọc file (xem trước + lỗi từng dòng) rồi mới ghi |
 | 8. PDF | `PdfBLL`: hóa đơn, đơn đặt hàng, phiếu nhập, phiếu đổi trả, báo cáo thống kê. Font tiếng Việt nhúng sẵn trong BLL (`BLL/Fonts`, DejaVu Sans) |
-| 9. Bàn phím | Web bán hàng: phím tắt toàn trang (`/`, `?`, `g`+chữ, `a`, `f`, `Ctrl+Enter`...) trong `web-ban-hang/src/features/phimTat`, bảng phím tắt mở bằng `?` (xem `web-ban-hang/README.md`). Web staff và app admin: làm ở giai đoạn sau |
+| 9. Bàn phím | Web bán hàng: phím tắt toàn trang (`/`, `?`, `g`+chữ, `a`, `f`, `Ctrl+Enter`...) trong `web-ban-hang/src/features/phimTat`, bảng phím tắt mở bằng `?` (xem `web-ban-hang/README.md`). Web staff: bấm `?`. App admin: mọi nút có phím tắt, F1 / `?` mở bảng phím tắt, Ctrl+K mở nhanh màn hình (xem `AppAdmin/README.md`) |
 
 ## Thư viện
 
