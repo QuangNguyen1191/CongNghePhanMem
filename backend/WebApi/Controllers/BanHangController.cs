@@ -50,6 +50,7 @@ public class GioHangController : CoSoController
 }
 
 [Route("api/don-hang"), Authorize]
+[CanQuyen(NhomQuyen.DonOnline)]   // nhan vien: chi chuc vu xu ly don online (khach di qua ChiCuaMinh)
 public class DonHangController : CoSoController
 {
     private readonly DonDatHangBLL _bll = new();
@@ -110,6 +111,7 @@ public class DonHangController : CoSoController
 
 // v3: don da tra truoc bi huy -> danh sach cho hoan tien
 [Route("api/hoan-tien"), Authorize(Roles = VaiTro.NhanVienHoacAdmin)]
+[CanQuyen(NhomQuyen.BanHang, NhomQuyen.DonOnline)]
 public class HoanTienController : CoSoController
 {
     private readonly HoanTienBLL _bll = new();
@@ -121,6 +123,7 @@ public class HoanTienController : CoSoController
 }
 
 [Route("api/hoa-don"), Authorize]
+[CanQuyen(NhomQuyen.BanHang, NhomQuyen.DonOnline)]   // nhan vien kho khong xem hoa don
 public class HoaDonController : CoSoController
 {
     private readonly HoaDonBLL _bll = new();
@@ -141,10 +144,10 @@ public class HoaDonController : CoSoController
     public FileContentResult InPdf(string ma) => Pdf(_pdf.HoaDon(LayTheoMa(ma)), ma);
 
     // ---- nhan vien: ban tai quay
-    [Authorize(Roles = VaiTro.NhanVienHoacAdmin), HttpPost("tinh-truoc")]
+    [Authorize(Roles = VaiTro.NhanVienHoacAdmin), CanQuyen(NhomQuyen.BanHang), HttpPost("tinh-truoc")]
     public BangTinhTienDTO TinhTruoc(BanTaiQuayDTO yc) => _bll.TinhTruoc(yc);
 
-    [Authorize(Roles = VaiTro.NhanVienHoacAdmin), HttpPost("ban-tai-quay")]
+    [Authorize(Roles = VaiTro.NhanVienHoacAdmin), CanQuyen(NhomQuyen.BanHang), HttpPost("ban-tai-quay")]
     public HoaDonDTO BanTaiQuay(BanTaiQuayDTO yc) => _bll.BanTaiQuay(yc, MaNv);
 
     // Yeu cau 4 (main-sub): danh sach ben trai...
@@ -156,6 +159,6 @@ public class HoaDonController : CoSoController
     [Authorize(Roles = VaiTro.NhanVienHoacAdmin), HttpGet("{ma}/chi-tiet")]
     public List<ChiTietHoaDonDTO> LayChiTiet(string ma) => _bll.LayChiTiet(ma);
 
-    [Authorize(Roles = VaiTro.NhanVienHoacAdmin), HttpPost("{ma}/huy")]
+    [Authorize(Roles = VaiTro.NhanVienHoacAdmin), CanQuyen(NhomQuyen.BanHang), HttpPost("{ma}/huy")]
     public IActionResult Huy(string ma) { _bll.Huy(ma); return NoContent(); }
 }

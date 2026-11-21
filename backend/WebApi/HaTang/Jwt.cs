@@ -17,6 +17,9 @@ public static class TenClaim
     public const string MaKh = "ma_kh";
     public const string HoTen = "ho_ten";
     public const string Sdt = "sdt";            // v3: phien khach vang lai
+    // Nhom quyen theo chuc vu: KHONG nam trong token, gan vao moi request luc kiem token (Program.cs, OnTokenValidated)
+    // tu chuc vu hien tai -> admin doi chuc vu thi co hieu luc ngay, khong doi token het han
+    public const string NhomQuyen = "nhom_quyen";
 }
 
 public static class VaiTro

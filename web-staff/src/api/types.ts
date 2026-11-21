@@ -7,6 +7,8 @@ export interface PhienDangNhap {
   maNv?: string | null;
   hoTen: string;
   chucVu?: string | null;
+  // Nhóm quyền server tính theo chức vụ (ban-hang / don-online / kho); backend chặn từng API theo đúng danh sách này
+  nhomQuyen?: ('ban-hang' | 'don-online' | 'kho')[] | null;
   token?: string | null;
 }
 

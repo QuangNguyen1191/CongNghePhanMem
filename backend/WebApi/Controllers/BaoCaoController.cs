@@ -58,8 +58,8 @@ public class TimKiemController : CoSoController
         sanPham = TimKiemBLL.CacTruongSanPham, toanTu = TimKiemBLL.CacToanTu
     };
 
-    [HttpPost("hoa-don")] public List<HoaDonDTO> HoaDon(TimKiemNangCaoDTO dk) => _bll.TimHoaDon(dk);
-    [HttpPost("khach-hang")] public List<KhachHangDTO> KhachHang(TimKiemNangCaoDTO dk) => _bll.TimKhachHang(dk);
+    [HttpPost("hoa-don"), CanQuyen(NhomQuyen.BanHang, NhomQuyen.DonOnline)] public List<HoaDonDTO> HoaDon(TimKiemNangCaoDTO dk) => _bll.TimHoaDon(dk);
+    [HttpPost("khach-hang"), CanQuyen(NhomQuyen.BanHang, NhomQuyen.DonOnline)] public List<KhachHangDTO> KhachHang(TimKiemNangCaoDTO dk) => _bll.TimKhachHang(dk);
     [HttpPost("san-pham")] public List<SanPhamDTO> SanPham(TimKiemNangCaoDTO dk) => _bll.TimSanPham(dk);
 }
 
@@ -70,14 +70,14 @@ public class ExcelController : CoSoController
     private readonly ExcelBLL _bll = new();
 
     [HttpGet("san-pham")] public FileContentResult SanPham() => Excel(_bll.XuatSanPham(new SanPhamBLL().LayTatCa()), "SanPham");
-    [HttpGet("khach-hang")] public FileContentResult KhachHang() => Excel(_bll.XuatKhachHang(new KhachHangBLL().LayTatCa()), "KhachHang");
-    [HttpGet("nha-cung-cap")] public FileContentResult NhaCungCap() => Excel(_bll.XuatNhaCungCap(new NhaCungCapBLL().LayTatCa()), "NhaCungCap");
+    [HttpGet("khach-hang"), CanQuyen(NhomQuyen.BanHang, NhomQuyen.DonOnline)] public FileContentResult KhachHang() => Excel(_bll.XuatKhachHang(new KhachHangBLL().LayTatCa()), "KhachHang");
+    [HttpGet("nha-cung-cap"), CanQuyen(NhomQuyen.Kho)] public FileContentResult NhaCungCap() => Excel(_bll.XuatNhaCungCap(new NhaCungCapBLL().LayTatCa()), "NhaCungCap");
 
-    [HttpGet("hoa-don")]
+    [HttpGet("hoa-don"), CanQuyen(NhomQuyen.BanHang, NhomQuyen.DonOnline)]
     public FileContentResult HoaDon(DateTime? tuNgay, DateTime? denNgay, string? trangThai) =>
         Excel(_bll.XuatHoaDon(new HoaDonBLL().LayDanhSach(tuNgay, denNgay, trangThai)), "HoaDon");
 
-    [HttpGet("phieu-nhap")]
+    [HttpGet("phieu-nhap"), CanQuyen(NhomQuyen.Kho)]
     public FileContentResult PhieuNhap(DateTime? tuNgay, DateTime? denNgay) =>
         Excel(_bll.XuatPhieuNhap(new PhieuNhapBLL().LayDanhSach(tuNgay, denNgay)), "PhieuNhap");
 
@@ -114,7 +114,7 @@ public class ExcelController : CoSoController
     [Authorize(Roles = VaiTro.Admin), HttpPost("nhap/san-pham")]
     public List<SanPhamDTO> NhapSanPham(List<SanPhamDTO> ds) => _bll.NhapSanPham(ds);
 
-    [HttpPost("nhap/khach-hang")]
+    [HttpPost("nhap/khach-hang"), CanQuyen(NhomQuyen.BanHang, NhomQuyen.DonOnline)]
     public object NhapKhachHang(List<KhachHangDTO> ds)
     {
         var (so, lois) = _bll.NhapKhachHang(ds);

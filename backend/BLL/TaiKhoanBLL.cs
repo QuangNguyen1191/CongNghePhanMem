@@ -43,6 +43,7 @@ public class TaiKhoanBLL
         {
             (phien.MaKh, phien.HoTen) = (tk.MaKh, tk.HoTen ?? "");
         }
+        phien.NhomQuyen = NhomQuyen.TheoChucVu(tk.VaiTro, phien.ChucVu);
         return phien;
     }
 
@@ -130,17 +131,28 @@ public class TaiKhoanBLL
     // ---- Token JWT con han nhung tai khoan da bi khoa (hoac nhan vien nghi viec) thi khong duoc dung nua.
     // Nho ket qua 30 giay de khong ton 1 cau SQL cho moi request; khoa / mo tren web thi co hieu luc ngay,
     // khoa tu app admin (process khac) thi co hieu luc trong toi da 30 giay.
-    private static readonly ConcurrentDictionary<string, (bool HoatDong, DateTime LucKiem)> _trangThai = new();
+    // Nho kem nhom quyen theo chuc vu hien tai: admin doi chuc vu nhan vien thi quyen doi theo ma khong doi token het han.
+    private static readonly ConcurrentDictionary<string, (bool HoatDong, List<string> NhomQuyen, DateTime LucKiem)> _trangThai = new();
     public static TimeSpan ThoiGianNhoTrangThai { get; set; } = TimeSpan.FromSeconds(30);
 
-    public bool ConHoatDong(string maTk)
+    public bool ConHoatDong(string maTk) => KiemTraPhien(maTk).HoatDong;
+
+    // Moi request cua token tai khoan: con hoat dong khong + nhom quyen (BLL.NhomQuyen). Toi da 1-2 cau SQL / 30 giay / tai khoan,
+    // khong tinh vao so cau SQL hien tren header (yeu cau 1).
+    public (bool HoatDong, List<string> NhomQuyen) KiemTraPhien(string maTk)
     {
-        if (_trangThai.TryGetValue(maTk, out var x) && DateTime.Now - x.LucKiem < ThoiGianNhoTrangThai) return x.HoatDong;
+        if (_trangThai.TryGetValue(maTk, out var x) && DateTime.Now - x.LucKiem < ThoiGianNhoTrangThai) return (x.HoatDong, x.NhomQuyen);
         bool hoatDong;
+        List<string> nhom;
         using (NhatKySql.TamNgungDem())
-            hoatDong = _tkDal.LayTheoMa(maTk)?.TrangThai == "HOAT_DONG";
-        _trangThai[maTk] = (hoatDong, DateTime.Now);
-        return hoatDong;
+        {
+            var tk = _tkDal.LayTheoMa(maTk);
+            hoatDong = tk?.TrangThai == "HOAT_DONG";
+            var chucVu = tk?.MaNv != null ? _nvDal.LayTheoMa(tk.MaNv)?.ChucVu : null;
+            nhom = tk == null ? new() : NhomQuyen.TheoChucVu(tk.VaiTro, chucVu);
+        }
+        _trangThai[maTk] = (hoatDong, nhom, DateTime.Now);
+        return (hoatDong, nhom);
     }
 
     internal static void QuenTrangThai(string maTk) => _trangThai.TryRemove(maTk, out _);

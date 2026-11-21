@@ -37,8 +37,10 @@ VITE_ANH_URL=http://localhost:5173
 | `thukho` | Thủ kho | Nhập hàng, sản phẩm & tồn kho |
 | `quanly` | Quản lý cửa hàng | Tất cả |
 
-Quyền theo chức vụ nằm ở `src/lib/phien.tsx` (`quyenTheoChucVu`): chức vụ có chữ "thu ngân" → bán hàng, "online" → đơn online, "kho" → nhập hàng;
-quản lý, giám đốc, ADMIN hoặc chức vụ không khớp thì thấy hết. Tài khoản khách hàng không đăng nhập được.
+Quyền theo chức vụ do **server** tính và chặn ở từng API (`backend/BLL/PhanQuyenBLL.cs`, 403 nếu thiếu quyền), trả về trong phiên đăng nhập
+(`nhomQuyen`); web dùng lại danh sách đó (`src/lib/phien.tsx`) để ẩn menu và không gọi API ngoài quyền. Chức vụ có chữ "thu ngân" → bán hàng,
+"online" → đơn online, "kho" → nhập hàng; quản lý, giám đốc, ADMIN thấy hết; chức vụ không khớp thì chỉ thấy Tổng quan, Sản phẩm, Nhật ký SQL.
+Tài khoản khách hàng không đăng nhập được.
 
 ## Các màn hình
 

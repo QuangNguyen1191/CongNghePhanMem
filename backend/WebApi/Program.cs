@@ -40,7 +40,20 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
                 return Task.CompletedTask;
             }
             var maTk = ctx.Principal?.FindFirst(TenClaim.MaTk)?.Value;
-            if (maTk == null || !new TaiKhoanBLL().ConHoatDong(maTk)) ctx.Fail("Tài khoản đã bị khóa");
+            if (maTk == null)
+            {
+                ctx.Fail("Token không hợp lệ");
+                return Task.CompletedTask;
+            }
+            var (hoatDong, nhomQuyen) = new TaiKhoanBLL().KiemTraPhien(maTk);
+            if (!hoatDong)
+            {
+                ctx.Fail("Tài khoản đã bị khóa");
+                return Task.CompletedTask;
+            }
+            // Nhom quyen theo chuc vu hien tai -> CanQuyenAttribute kiem tra o tung API nhan vien
+            if (ctx.Principal!.Identity is System.Security.Claims.ClaimsIdentity id)
+                foreach (var q in nhomQuyen) id.AddClaim(new System.Security.Claims.Claim(TenClaim.NhomQuyen, q));
             return Task.CompletedTask;
         }
     };

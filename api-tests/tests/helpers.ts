@@ -35,6 +35,9 @@ export async function ctxCho(ten: string, noi: Noi): Promise<APIRequestContext> 
 
 export const admin = () => ctxCho('quanly', 'web-staff');
 export const nhanVien = () => ctxCho('thungan1', 'web-staff');
+// Theo chuc vu (backend chan tung API theo nhom quyen): thu ngan = ban tai quay, banhangonline = don online, thukho = kho
+export const banOnline = () => ctxCho('banhangonline', 'web-staff');
+export const thuKho = () => ctxCho('thukho', 'web-staff');
 export const khach = (ten = 'khach01') => ctxCho(ten, 'web-ban-hang');
 export const anDanh = () => request.newContext({ baseURL: BASE });
 

@@ -57,6 +57,8 @@ public class PhienDangNhapDTO
     public string? MaKh { get; set; }
     public string HoTen { get; set; } = "";
     public string? ChucVu { get; set; }
+    // Nhom quyen theo chuc vu (ban-hang / don-online / kho, xem BLL.NhomQuyen); web staff an hien menu theo danh sach nay
+    public List<string> NhomQuyen { get; set; } = new();
     public string? Token { get; set; }             // WebApi gan JWT vao day
     public int? SoDonDaGan { get; set; }           // v3: dang ky xong, so don vang lai cu da gan vao tai khoan
 }

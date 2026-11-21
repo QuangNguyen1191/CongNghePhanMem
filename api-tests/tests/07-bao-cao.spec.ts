@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import ExcelJS from 'exceljs';
-import { admin, anDanh, khach, loi, nhanVien, ok, RUN, taoSanPhamCoTon, sdtMoi } from './helpers';
+import { admin, anDanh, khach, loi, nhanVien, ok, RUN, taoSanPhamCoTon, sdtMoi, thuKho } from './helpers';
 
 const XLSX = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 const laXlsx = (b: Buffer) => b.subarray(0, 2).toString() === 'PK';
@@ -158,7 +158,9 @@ test.describe('TimKiem nang cao (yeu cau 6)', () => {
 test.describe('Excel (yeu cau 7)', () => {
   for (const loai of ['san-pham', 'khach-hang', 'nha-cung-cap', 'hoa-don', 'phieu-nhap', 'hoa-don?tuNgay=2025-01-01&denNgay=2025-12-31&trangThai=DA_THANH_TOAN']) {
     test(`xuat ${loai}`, async () => {
-      const r = await (await nhanVien()).get(`/api/excel/${loai}`);
+      // nha cung cap / phieu nhap la viec cua kho (phan quyen theo chuc vu), con lai thu ngan xuat duoc
+      const nguoi = loai === 'nha-cung-cap' || loai === 'phieu-nhap' ? await thuKho() : await nhanVien();
+      const r = await nguoi.get(`/api/excel/${loai}`);
       expect(r.status()).toBe(200);
       expect(r.headers()['content-type']).toContain(XLSX);
       expect(r.headers()['content-disposition']).toContain('.xlsx');

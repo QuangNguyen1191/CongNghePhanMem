@@ -3,20 +3,22 @@ import { KHOA_LUU_PHIEN, khiHetPhien, post } from '../api/client';
 import type { PhienDangNhap } from '../api/types';
 import { boDau } from './dinhDang';
 
-// Nhóm quyền màn hình theo chức vụ (cột NHAN_VIEN.chuc_vu). Backend vẫn kiểm tra vai trò NHAN_VIEN / ADMIN cho mọi API;
-// phần này chỉ ẩn các màn hình không thuộc việc của từng người để giao diện gọn hơn.
+// Nhóm quyền theo chức vụ (cột NHAN_VIEN.chuc_vu). SERVER tính và chặn từng API theo nhóm quyền (BLL/PhanQuyenBLL.cs,
+// WebApi/HaTang/CanQuyen.cs) rồi trả danh sách trong phiên đăng nhập (nhomQuyen); web chỉ dùng lại để ẩn menu / không gọi API
+// không được phép. Hàm dưới chỉ dùng cho phiên cũ lưu trước khi server trả nhomQuyen, cùng quy tắc với server.
 export type NhomQuyen = 'ban-hang' | 'don-online' | 'kho';
 const TAT_CA: NhomQuyen[] = ['ban-hang', 'don-online', 'kho'];
 
 export function quyenTheoChucVu(p: PhienDangNhap | null): NhomQuyen[] {
   if (!p) return [];
+  if (Array.isArray(p.nhomQuyen)) return p.nhomQuyen;
   if (p.vaiTro === 'ADMIN') return TAT_CA;
   const cv = boDau(p.chucVu ?? '');
+  if (cv.includes('quan ly') || cv.includes('giam doc')) return TAT_CA;
   const q: NhomQuyen[] = [];
   if (cv.includes('thu ngan') || cv.includes('ban hang tai quay')) q.push('ban-hang');
   if (cv.includes('online')) q.push('don-online');
   if (cv.includes('kho')) q.push('kho');
-  if (cv.includes('quan ly') || cv.includes('giam doc') || q.length === 0) return TAT_CA;
   return q;
 }
 

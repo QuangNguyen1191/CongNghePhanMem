@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { admin, anDanh, khach, loi, nhanVien, ok, RUN, taoSanPhamCoTon, BASE, dangKy } from './helpers';
+import { admin, anDanh, khach, loi, nhanVien, ok, RUN, taoSanPhamCoTon, BASE, dangKy, thuKho } from './helpers';
 import { request } from '@playwright/test';
 
 const ton = async (api: any, maSp: string) => (await ok(await api.get(`/api/san-pham/${maSp}`))).soLuong as number;
@@ -8,7 +8,7 @@ test.describe('PhieuNhap', () => {
   test('lap phieu: gop dong trung, cong ton, xem, chi tiet, pdf', async () => {
     const ad = await admin();
     const sp = await ok(await ad.post('/api/san-pham', { data: { tenSp: `Nhập ${RUN}`, maLoaiSp: 'LSP02', donGia: 300000 } }));
-    const nv = await nhanVien();
+    const nv = await thuKho();
     const p = await ok(await nv.post('/api/phieu-nhap', {
       data: { maNcc: 'NCC02', chiTiets: [{ maSp: sp.maSp, soLuong: 5, donGiaNhap: 150000 }, { maSp: sp.maSp.toLowerCase(), soLuong: 3, donGiaNhap: 150000 }] } }));
     expect(p).toMatchObject({ maNcc: 'NCC02', tongTien: 1200000 });
@@ -27,7 +27,7 @@ test.describe('PhieuNhap', () => {
   });
 
   test('validate phieu nhap', async () => {
-    const nv = await nhanVien();
+    const nv = await thuKho();
     await loi(await nv.post('/api/phieu-nhap', { data: { maNcc: 'NCC01', chiTiets: [] } }), 400, /chưa có sản phẩm/);
     await loi(await nv.post('/api/phieu-nhap', { data: { maNcc: 'NCC01' } }), 400);
     await loi(await nv.post('/api/phieu-nhap', { data: { maNcc: 'NCC99', chiTiets: [{ maSp: 'SP001', soLuong: 1, donGiaNhap: 1 }] } }), 404);

@@ -1,5 +1,5 @@
 import { test, expect, request, type APIRequestContext } from '@playwright/test';
-import { admin, anDanh, BASE, dangKy, khach, loi, nhanVien, ok, RUN, sdtMoi, taoSanPhamCoTon, xacThucSdt } from './helpers';
+import { admin, anDanh, BASE, dangKy, khach, loi, nhanVien, ok, RUN, sdtMoi, taoSanPhamCoTon, xacThucSdt, banOnline } from './helpers';
 
 // v3: huy don / yeu cau huy don da xac nhan, nhan vien duyet - tu choi, hoan tien don da tra truoc
 async function khachMoi(ten: string) {
@@ -26,7 +26,7 @@ test.describe('Huy don', () => {
 
   test('da xac nhan (chuyen khoan): xin huy -> chan giao -> duyet: tra kho, huy HD, tao phieu hoan tien -> da hoan', async () => {
     const ad = await admin();
-    const nv = await nhanVien();
+    const nv = await banOnline();
     const sp = await taoSanPhamCoTon(ad, 10, 300000);
     const kh = await khachMoi('hy2');
     const don = await datDon(kh, sp.maSp, 'CHUYEN_KHOAN');
@@ -58,7 +58,7 @@ test.describe('Huy don', () => {
   });
 
   test('tu choi yeu cau (bat buoc ly do) -> khong xin lai duoc; dang giao khong huy online; nhan vien huy co ly do', async () => {
-    const nv = await nhanVien();
+    const nv = await banOnline();
     const sp = await taoSanPhamCoTon(await admin(), 10);
     const kh = await khachMoi('hy3');
     const don = await datDon(kh, sp.maSp);
@@ -77,7 +77,7 @@ test.describe('Huy don', () => {
   });
 
   test('khach vang lai xin huy don da xac nhan; duyet xong khong bi tinh bom hang', async () => {
-    const nv = await nhanVien();
+    const nv = await banOnline();
     const sp = await taoSanPhamCoTon(await admin(), 10);
     const sdt = sdtMoi(95);
     const vl = await request.newContext({ baseURL: BASE, extraHTTPHeaders: { Authorization: `Bearer ${await xacThucSdt(await anDanh(), sdt, 'MUA_HANG')}` } });

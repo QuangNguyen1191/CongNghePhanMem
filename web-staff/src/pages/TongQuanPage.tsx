@@ -27,10 +27,13 @@ function TheSo({ nhan, giaTri, goiY, den, icon, nhanManh }: { nhan: string; giaT
 export default function TongQuanPage() {
   const { phien, coQuyen } = usePhien();
   const opt = { refetchInterval: 30_000 };
-  const don = useQuery({ queryKey: ['don-hang', 'cho'], queryFn: () => get<DonDatHang[]>('/api/don-hang', { trangThai: 'CHO_XAC_NHAN' }), ...opt });
-  const huy = useQuery({ queryKey: ['don-hang', 'xin-huy'], queryFn: () => get<DonDatHang[]>('/api/don-hang', { yeuCauHuy: 'CHO_DUYET' }), ...opt });
-  const dt = useQuery({ queryKey: ['doi-tra', 'cho'], queryFn: () => get<DoiTra[]>('/api/doi-tra', { trangThai: 'CHO_DUYET' }), ...opt });
-  const ht = useQuery({ queryKey: ['hoan-tien', 'cho'], queryFn: () => get<HoanTien[]>('/api/hoan-tien', { trangThai: 'CHO_HOAN' }), ...opt });
+  // Chỉ hỏi số liệu chức vụ được xem: server chặn 403 với API ngoài quyền (thủ kho không xem đơn / hóa đơn / khách)
+  const xemDon = coQuyen(['don-online']);
+  const xemChungTu = coQuyen(['ban-hang', 'don-online']);
+  const don = useQuery({ queryKey: ['don-hang', 'cho'], queryFn: () => get<DonDatHang[]>('/api/don-hang', { trangThai: 'CHO_XAC_NHAN' }), enabled: xemDon, ...opt });
+  const huy = useQuery({ queryKey: ['don-hang', 'xin-huy'], queryFn: () => get<DonDatHang[]>('/api/don-hang', { yeuCauHuy: 'CHO_DUYET' }), enabled: xemDon, ...opt });
+  const dt = useQuery({ queryKey: ['doi-tra', 'cho'], queryFn: () => get<DoiTra[]>('/api/doi-tra', { trangThai: 'CHO_DUYET' }), enabled: xemChungTu, ...opt });
+  const ht = useQuery({ queryKey: ['hoan-tien', 'cho'], queryFn: () => get<HoanTien[]>('/api/hoan-tien', { trangThai: 'CHO_HOAN' }), enabled: xemChungTu, ...opt });
   const tonThap = useQuery({ queryKey: ['san-pham', 'ton-thap'], queryFn: () => get<SanPham[]>('/api/san-pham/ton-thap') });
 
   const gio = dayjs().hour();

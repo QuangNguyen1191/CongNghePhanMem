@@ -1,5 +1,5 @@
 import { test, expect, request } from '@playwright/test';
-import { admin, anDanh, BASE, dangKy, loi, nhanVien, ok, sdtMoi, taoSanPhamCoTon, xacThucSdt } from './helpers';
+import { admin, anDanh, BASE, dangKy, loi, nhanVien, ok, sdtMoi, taoSanPhamCoTon, xacThucSdt, banOnline } from './helpers';
 
 // v3: khach vang lai mua hang khong can tai khoan (xac thuc SDT bang OTP) + uu dai thanh vien moi
 const vangLai = async (token: string) =>
@@ -59,7 +59,7 @@ test.describe('Khach vang lai', () => {
   });
 
   test('nhan vien: loc don vang lai, xem rui ro SDT bom hang', async () => {
-    const nv = await nhanVien();
+    const nv = await banOnline();
     const ds = await ok(await nv.get('/api/don-hang?nguon=VANG_LAI'));
     expect(ds.length).toBeGreaterThan(0);
     for (const d of ds) expect(d.nguon).toBe('VANG_LAI');
@@ -124,7 +124,7 @@ test.describe('Dang ky + uu dai thanh vien moi', () => {
     expect(await ok(await kh.get('/api/khuyen-mai/thanh-vien-moi'))).toMatchObject({ daDung: 4, conLai: 0 });
 
     // xac nhan don thanh vien moi -> hoa don ghi KM06 (thong ke hieu qua khuyen mai)
-    const nv = await nhanVien();
+    const nv = await banOnline();
     const don1 = (await ok(await kh.get('/api/don-hang/cua-toi'))).find((d: { tienGiam: number }) => d.tienGiam === 40000);
     const hd = await ok(await nv.post(`/api/don-hang/${don1.maDon}/xac-nhan`));
     expect(hd).toMatchObject({ maKm: 'KM06', tienGiam: 40000 });

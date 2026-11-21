@@ -60,13 +60,15 @@ const MENU: MucMenu[] = [
   { duongDan: '/nhat-ky-sql', ten: 'Nhật ký SQL', icon: <DatabaseOutlined />, trang: <NhatKySqlPage /> },
 ];
 
-// Số việc đang chờ hiện trên menu, tự làm mới mỗi 30 giây
-function useSoViecCho(bat: boolean) {
-  const opt = { enabled: bat, refetchInterval: 30_000 };
-  const don = useQuery({ queryKey: ['don-hang', 'cho'], queryFn: () => get<DonDatHang[]>('/api/don-hang', { trangThai: 'CHO_XAC_NHAN' }), ...opt });
-  const huy = useQuery({ queryKey: ['don-hang', 'xin-huy'], queryFn: () => get<DonDatHang[]>('/api/don-hang', { yeuCauHuy: 'CHO_DUYET' }), ...opt });
-  const dt = useQuery({ queryKey: ['doi-tra', 'cho'], queryFn: () => get<DoiTra[]>('/api/doi-tra', { trangThai: 'CHO_DUYET' }), ...opt });
-  const ht = useQuery({ queryKey: ['hoan-tien', 'cho'], queryFn: () => get<HoanTien[]>('/api/hoan-tien', { trangThai: 'CHO_HOAN' }), ...opt });
+// Số việc đang chờ hiện trên menu, tự làm mới mỗi 30 giây. Chỉ hỏi những gì chức vụ được xem (server chặn 403 phần còn lại).
+function useSoViecCho(coQuyen: (q?: NhomQuyen[]) => boolean) {
+  const opt = { refetchInterval: 30_000 };
+  const xemDon = coQuyen(['don-online']);
+  const xemChungTu = coQuyen(['ban-hang', 'don-online']);
+  const don = useQuery({ queryKey: ['don-hang', 'cho'], queryFn: () => get<DonDatHang[]>('/api/don-hang', { trangThai: 'CHO_XAC_NHAN' }), enabled: xemDon, ...opt });
+  const huy = useQuery({ queryKey: ['don-hang', 'xin-huy'], queryFn: () => get<DonDatHang[]>('/api/don-hang', { yeuCauHuy: 'CHO_DUYET' }), enabled: xemDon, ...opt });
+  const dt = useQuery({ queryKey: ['doi-tra', 'cho'], queryFn: () => get<DoiTra[]>('/api/doi-tra', { trangThai: 'CHO_DUYET' }), enabled: xemChungTu, ...opt });
+  const ht = useQuery({ queryKey: ['hoan-tien', 'cho'], queryFn: () => get<HoanTien[]>('/api/hoan-tien', { trangThai: 'CHO_HOAN' }), enabled: xemChungTu, ...opt });
   return { don: (don.data?.length ?? 0) + (huy.data?.length ?? 0), doiTra: dt.data?.length ?? 0, hoanTien: ht.data?.length ?? 0 };
 }
 
@@ -94,7 +96,7 @@ function KhungChinh() {
   const [moPhim, setMoPhim] = useState(false);
   const [moDoiMk, setMoDoiMk] = useState(false);
   const menu = useMemo(() => MENU.filter((m) => coQuyen(m.quyen)), [coQuyen]);
-  const dem = useSoViecCho(true);
+  const dem = useSoViecCho(coQuyen);
 
   usePhimTat([
     { phim: '?', chay: () => setMoPhim(true) },

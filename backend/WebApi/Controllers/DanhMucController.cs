@@ -58,6 +58,7 @@ public class SanPhamController : CoSoController
 }
 
 [Route("api/nha-cung-cap"), Authorize(Roles = VaiTro.NhanVienHoacAdmin)]
+[CanQuyen(NhomQuyen.Kho)]
 public class NhaCungCapController : CoSoController
 {
     private readonly NhaCungCapBLL _bll = new();

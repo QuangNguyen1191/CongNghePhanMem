@@ -7,6 +7,7 @@ using WebApi.HaTang;
 namespace WebApi.Controllers;
 
 [Route("api/phieu-nhap"), Authorize(Roles = VaiTro.NhanVienHoacAdmin)]
+[CanQuyen(NhomQuyen.Kho)]
 public class PhieuNhapController : CoSoController
 {
     private readonly PhieuNhapBLL _bll = new();
@@ -25,6 +26,7 @@ public class PhieuNhapController : CoSoController
 }
 
 [Route("api/doi-tra"), Authorize]
+[CanQuyen(NhomQuyen.BanHang, NhomQuyen.DonOnline)]   // nhan vien: ban tai quay hoac don online (khach di qua ChiCuaMinh)
 public class DoiTraController : CoSoController
 {
     private readonly DoiTraBLL _bll = new();

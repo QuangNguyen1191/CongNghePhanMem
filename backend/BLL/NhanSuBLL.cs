@@ -42,6 +42,8 @@ public class NhanVienBLL
         KiemTra(nv);
         QuyTac.KiemTra(!_nvDal.TrungEmail(nv.Email, nv.MaNv), "Email đã được dùng cho nhân viên khác");
         QuyTac.CanTimThay(_nvDal.Sua(nv) == 1, "Không tìm thấy nhân viên");
+        // doi chuc vu -> doi nhom quyen: bo nho dem de request ke tiep cua nhan vien nay ap quyen moi ngay
+        if (_nvDal.LayTheoMa(nv.MaNv)?.MaTk is { Length: > 0 } maTk) TaiKhoanBLL.QuenTrangThai(maTk);
     }
 
     // Nghi viec: giu ho so (hoa don cu van tro toi), khoa tai khoan

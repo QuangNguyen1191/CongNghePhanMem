@@ -1,5 +1,5 @@
 import { test, expect, APIRequestContext } from '@playwright/test';
-import { admin, anDanh, khach, loi, nhanVien, ok, RUN, taoSanPhamCoTon, BASE, dangKy } from './helpers';
+import { admin, anDanh, khach, loi, nhanVien, ok, RUN, taoSanPhamCoTon, BASE, dangKy, banOnline } from './helpers';
 import { request } from '@playwright/test';
 
 // Moi test tao khach moi de gio hang / diem tich luy doc lap
@@ -86,7 +86,7 @@ test.describe('DonHang (online)', () => {
     await ok(await kh.get(`/api/don-hang/${don.maDon}`));
     await loi(await kh.post('/api/don-hang', { data: { diaChiGiao: 'x', sdtNhan: '0900000000' } }), 400, /trống/);
 
-    const nv = await nhanVien();
+    const nv = await banOnline();
     const choXn = await ok(await nv.get('/api/don-hang?trangThai=CHO_XAC_NHAN'));
     expect(choXn.some((d: any) => d.maDon === don.maDon)).toBeTruthy();
     expect(choXn.every((d: any) => d.trangThai === 'CHO_XAC_NHAN')).toBeTruthy();
@@ -120,7 +120,7 @@ test.describe('DonHang (online)', () => {
     const don = await ok(await kh.post('/api/don-hang', {
       data: { diaChiGiao: 'HN', sdtNhan: '0900000001', phuongThucTt: 'CHUYEN_KHOAN', maVoucher: 'welcome10' } }));
     expect(don).toMatchObject({ maVoucher: 'WELCOME10', tienGiam: 20000, tongTien: 180000 });
-    const nv = await nhanVien();
+    const nv = await banOnline();
     const hd = await ok(await nv.post(`/api/don-hang/${don.maDon}/xac-nhan`));
     expect(hd).toMatchObject({ trangThai: 'DA_THANH_TOAN', maKm: 'KM03' });
     expect((await ok(await kh.get('/api/khach-hang/toi'))).diemTichLuy).toBe(18);
@@ -130,8 +130,10 @@ test.describe('DonHang (online)', () => {
     expect((await ok(await nv.get(`/api/hoa-don/${hd.maHoaDon}`))).trangThai).toBe('DA_HUY');
     expect((await ok(await kh.get('/api/khach-hang/toi'))).diemTichLuy).toBe(0);
     await loi(await nv.post(`/api/don-hang/${don.maDon}/huy`), 400, /kết thúc/);
-    // hoa don cua don online khong huy truc tiep
-    await loi(await nv.post(`/api/hoa-don/${hd.maHoaDon}/huy`), 400);
+    // huy hoa don la viec cua ban tai quay: nhan vien don online bi chan theo chuc vu
+    await loi(await nv.post(`/api/hoa-don/${hd.maHoaDon}/huy`), 403, /bán tại quầy/);
+    // thu ngan qua duoc chot quyen nhung hoa don cua don online khong huy truc tiep (luat nghiep vu)
+    await loi(await (await nhanVien()).post(`/api/hoa-don/${hd.maHoaDon}/huy`), 400);
   });
 
   test('khach huy don cho xac nhan; nhan vien tu choi', async () => {
@@ -145,7 +147,7 @@ test.describe('DonHang (online)', () => {
 
     await ok(await kh.post('/api/gio-hang', { data: { maSp: sp.maSp, soLuong: 1 } }));
     const d2 = await ok(await kh.post('/api/don-hang', { data: { diaChiGiao: 'x', sdtNhan: '0900000002' } }));
-    const nv = await nhanVien();
+    const nv = await banOnline();
     expect((await nv.post(`/api/don-hang/${d2.maDon}/tu-choi`)).status()).toBe(204);
     await loi(await nv.post(`/api/don-hang/${d2.maDon}/tu-choi`), 400);
     expect((await ok(await kh.get(`/api/don-hang/${d2.maDon}`))).trangThai).toBe('TU_CHOI');
@@ -153,7 +155,7 @@ test.describe('DonHang (online)', () => {
   });
 
   test('khach khong xem / huy duoc don cua nguoi khac; 404', async () => {
-    const nv = await nhanVien();
+    const nv = await banOnline();
     const ds = await ok(await nv.get('/api/don-hang'));
     const cuaNguoiKhac = ds.find((d: any) => d.maKh !== 'KH001');
     const kh = await khach('khach01');
@@ -166,7 +168,7 @@ test.describe('DonHang (online)', () => {
   });
 
   test('loc danh sach don theo ngay', async () => {
-    const nv = await nhanVien();
+    const nv = await banOnline();
     const ds = await ok(await nv.get('/api/don-hang?tuNgay=2026-01-01&denNgay=2026-06-30'));
     expect(ds.length).toBeGreaterThan(0);
     for (const d of ds) expect(d.ngayDat.slice(0, 10) >= '2026-01-01' && d.ngayDat.slice(0, 10) <= '2026-06-30').toBeTruthy();
@@ -175,7 +177,7 @@ test.describe('DonHang (online)', () => {
   test('phan quyen don hang', async () => {
     expect((await (await khach()).get('/api/don-hang')).status()).toBe(403);
     expect((await (await khach()).post('/api/don-hang/DH00001/xac-nhan')).status()).toBe(403);
-    expect((await (await nhanVien()).post('/api/don-hang', { data: {} })).status()).toBe(403);
+    expect((await (await banOnline()).post('/api/don-hang', { data: {} })).status()).toBe(403);
     expect((await (await anDanh()).get('/api/don-hang/DH00001')).status()).toBe(401);
   });
 });

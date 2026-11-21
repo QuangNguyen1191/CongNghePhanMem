@@ -1,6 +1,6 @@
 # Kiểm thử API backend bằng Playwright
 
-116 test gọi thẳng HTTP vào WebApi (không cần trình duyệt), phủ toàn bộ 18 controller (kể cả khách mua không cần tài khoản, v3): đăng nhập theo nơi, phân quyền
+121 test gọi thẳng HTTP vào WebApi (không cần trình duyệt), phủ toàn bộ 18 controller (kể cả khách mua không cần tài khoản, v3): đăng nhập theo nơi, phân quyền
 ADMIN / NHAN_VIEN / KHACH_HANG / chưa đăng nhập, CRUD danh mục, giỏ hàng, luồng đơn online (đặt, xác nhận, giao, hoàn tất, hủy),
 bán tại quầy, phiếu nhập, đổi trả, khuyến mãi, thống kê 2 cách, tìm kiếm nâng cao, Excel, PDF, nhật ký SQL.
 
@@ -13,6 +13,7 @@ bán tại quầy, phiếu nhập, đổi trả, khuyến mãi, thống kê 2 c�
 | `tests/05-ban-hang.spec.ts` | Giỏ hàng, đơn online COD / chuyển khoản, bán tại quầy, main-sub hóa đơn, PDF, xem chứng từ người khác |
 | `tests/06-kho-doi-tra.spec.ts` | Phiếu nhập, đổi / trả hàng (hoàn tiền theo giá thực trả, quá 30 ngày) |
 | `tests/08-vang-lai.spec.ts` | v3: OTP (sai SĐT, gửi lại quá sớm, nhập sai), đặt / tra cứu / hủy đơn không cần tài khoản, token vãng lai không gọi được API khác, chống đơn ảo, nhân viên lọc đơn + xem rủi ro SĐT, đăng ký phải có OTP, gắn đơn cũ, ưu đãi 3 đơn đầu |
+| `tests/10-chuc-vu.spec.ts` | Phân quyền theo chức vụ: nhóm quyền trả về khi đăng nhập, ma trận 16 API × thu ngân / bán online / thủ kho / admin (gửi dữ liệu sai cố ý nên không ghi CSDL), 403 kèm thông báo, admin đổi chức vụ có hiệu lực ngay với token đang dùng, chức vụ lạ không có quyền |
 | `tests/09-huy-don.spec.ts` | v3: hủy ngay khi chờ xác nhận, xin hủy đơn đã xác nhận → chặn giao → duyệt (trả kho, hủy HĐ, phiếu hoàn tiền → đã hoàn) / từ chối (bắt buộc lý do), đang giao không hủy được, khách vãng lai xin hủy không bị tính bom hàng |
 | `tests/07-bao-cao.spec.ts` | Thống kê 5a-5e (2 cách ra cùng kết quả, Excel, PDF), tìm kiếm nâng cao, Excel xuất / đọc / nhập, nhật ký SQL, Swagger, CORS |
 

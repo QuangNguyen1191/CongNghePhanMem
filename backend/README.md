@@ -40,7 +40,7 @@ Lớp giao diện không gọi DAL. Cấu hình kết nối và nhật ký SQL �
 Chạy test: sửa chuỗi kết nối qua biến môi trường `QLBTT_KET_NOI` (mặc định `sa` / `Strong!Pass123` trên localhost), rồi
 `dotnet test Tests`. Test có tạo thêm hóa đơn, đơn, phiếu nhập; muốn sạch thì tạo lại CSDL.
 
-Test API bằng Playwright (116 test, gọi HTTP vào WebApi đang chạy): xem `../api-tests/README.md`.
+Test API bằng Playwright (121 test, gọi HTTP vào WebApi đang chạy): xem `../api-tests/README.md`.
 
 ## Đăng nhập theo nơi
 
@@ -50,7 +50,25 @@ Test API bằng Playwright (116 test, gọi HTTP vào WebApi đang chạy): xem 
 | `POST /api/tai-khoan/dang-nhap/web-staff` | NHAN_VIEN, ADMIN |
 | `POST /api/tai-khoan/dang-nhap/app-admin` | ADMIN (app desktop gọi `TaiKhoanBLL.DangNhap(..., NoiDangNhap.AppAdmin)`) |
 
-Lỗi nghiệp vụ trả về 400 (không tìm thấy: 404) với body `{ "thongBao": "..." }` tiếng Việt.
+Lỗi nghiệp vụ trả về 400 (không tìm thấy: 404, thiếu quyền theo chức vụ: 403) với body `{ "thongBao": "..." }` tiếng Việt.
+
+## Phân quyền theo chức vụ (nhân viên)
+
+Bên trong vai trò NHAN_VIEN, server chặn từng API theo **nhóm quyền** suy ra từ chức vụ (`NHAN_VIEN.chuc_vu`), không chỉ ẩn menu ở web.
+Quy tắc ở `BLL/PhanQuyenBLL.cs` (`NhomQuyen.TheoChucVu`), chốt chặn `[CanQuyen(...)]` ở `WebApi/HaTang/CanQuyen.cs`.
+
+| Chức vụ chứa | Nhóm quyền | API được dùng thêm (ngoài sản phẩm, tổng quan, nhật ký SQL, đổi mật khẩu) |
+| --- | --- | --- |
+| "thu ngân", "bán hàng tại quầy" | `ban-hang` | bán tại quầy (`hoa-don/tinh-truoc`, `ban-tai-quay`, `hoa-don/{ma}/huy`) + nhóm chứng từ bên dưới |
+| "online" | `don-online` | xử lý đơn (`api/don-hang`: danh sách, xác nhận, giao, hoàn tất, hủy, duyệt / từ chối xin hủy) + nhóm chứng từ |
+| "kho" | `kho` | `api/phieu-nhap`, `GET api/nha-cung-cap`, Excel phiếu nhập / nhà cung cấp |
+| `ban-hang` hoặc `don-online` | | hóa đơn, đổi trả, hoàn tiền, khách hàng (SĐT, địa chỉ), tìm nâng cao hóa đơn / khách, Excel hóa đơn / khách |
+| "quản lý", "giám đốc", vai trò ADMIN | tất cả | |
+| không khớp từ khóa nào | không có | chỉ xem sản phẩm, tổng quan (mặc định an toàn: admin đặt đúng chức vụ để cấp quyền) |
+
+Nhóm quyền **không nằm trong token**: mỗi request tính lại từ chức vụ hiện tại (nhớ 30 giây cùng lúc kiểm tra tài khoản bị khóa,
+`TaiKhoanBLL.KiemTraPhien`), admin sửa chức vụ thì có hiệu lực ngay ở request kế tiếp. Đăng nhập web staff trả kèm `nhomQuyen` để web ẩn menu
+đúng theo server. Khách hàng không bị ảnh hưởng (vẫn chỉ xem chứng từ của mình). Test: `api-tests/tests/10-chuc-vu.spec.ts`.
 
 ## v3: Khách mua không cần tài khoản (`api/vang-lai`)
 

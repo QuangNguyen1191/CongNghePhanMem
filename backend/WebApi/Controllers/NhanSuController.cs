@@ -27,6 +27,7 @@ public class NhanVienController : CoSoController
 }
 
 [Route("api/khach-hang"), Authorize]
+[CanQuyen(NhomQuyen.BanHang, NhomQuyen.DonOnline)]   // nhan vien kho khong xem thong tin khach (khach tu xem /toi)
 public class KhachHangController : CoSoController
 {
     private readonly KhachHangBLL _bll = new();

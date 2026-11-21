@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { admin, anDanh, khach, loi, nhanVien, ok, RUN, taoSanPhamCoTon } from './helpers';
+import { admin, anDanh, khach, loi, nhanVien, ok, RUN, taoSanPhamCoTon, thuKho } from './helpers';
 
 test.describe('LoaiSp', () => {
   test('ai cung xem duoc danh sach loai', async () => {
@@ -140,7 +140,7 @@ test.describe('SanPham', () => {
 
 test.describe('NhaCungCap', () => {
   test('nhan vien xem, admin them / sua / xoa', async () => {
-    const ds = await ok(await (await nhanVien()).get('/api/nha-cung-cap'));
+    const ds = await ok(await (await thuKho()).get('/api/nha-cung-cap'));
     expect(ds.length).toBeGreaterThanOrEqual(4);
     const ad = await admin();
     const n = await ok(await ad.post('/api/nha-cung-cap', { data: { tenNcc: `NCC ${RUN}`, sdt: '0281234567', email: ' ' } }));
@@ -158,7 +158,7 @@ test.describe('NhaCungCap', () => {
 
   test('phan quyen nha cung cap', async () => {
     expect((await (await khach()).get('/api/nha-cung-cap')).status()).toBe(403);
-    expect((await (await nhanVien()).post('/api/nha-cung-cap', { data: { tenNcc: 'x' } })).status()).toBe(403);
-    expect((await (await nhanVien()).delete('/api/nha-cung-cap/NCC01')).status()).toBe(403);
+    expect((await (await thuKho()).post('/api/nha-cung-cap', { data: { tenNcc: 'x' } })).status()).toBe(403);
+    expect((await (await thuKho()).delete('/api/nha-cung-cap/NCC01')).status()).toBe(403);
   });
 });
