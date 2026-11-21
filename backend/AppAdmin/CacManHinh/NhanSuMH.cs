@@ -45,10 +45,9 @@ public sealed class KhachHangMH : ManHinh
         var loc = GiaoDien.HangNgang();
         loc.Controls.AddRange(new Control[] { _tim, GiaoDien.Nhan("Hạng"), _hang, _taiKhoan });
 
-        _luoi.Them("Mã KH", k => k.MaKh, 70).Them("Họ tên", k => k.HoTen, 180, fill: true).Them("SĐT", k => k.Sdt, 105)
+        _luoi.Them("Mã KH", k => k.MaKh, 70).Them("Mã TK", k => k.MaTk ?? "Không", 70, mau: k => k.MaTk == null ? GiaoDien.ChuPhu : null).Them("Họ tên", k => k.HoTen, 180, fill: true).Them("SĐT", k => k.Sdt, 105)
             .Them("Email", k => k.Email, 170).Them("Tỉnh / thành", k => k.TinhThanh, 120)
-            .TrangThai("Hạng", k => k.HangThanhVien, Nhan.HangThanhVien, 85).So("Điểm", k => k.DiemTichLuy, 65)
-            .Them("Tài khoản", k => k.MaTk == null ? "Không" : "Có", 80, mau: k => k.MaTk == null ? GiaoDien.ChuPhu : null);
+            .TrangThai("Hạng", k => k.HangThanhVien, Nhan.HangThanhVien, 85).So("Điểm", k => k.DiemTichLuy, 65);
         _luoi.MoDong += _ => Sua();
 
         _don.Them("Mã đơn", d => d.MaDon, 80).Ngay("Ngày đặt", d => d.NgayDat, 120, coGio: true)
@@ -281,7 +280,7 @@ public sealed class NhanVienMH : ManHinh
         Muc.Nap(_trangThai, Nhan.CacMuc(Nhan.TrangThaiNhanVien), "DANG_LAM");
         var loc = GiaoDien.HangNgang();
         loc.Controls.AddRange(new Control[] { _tim, GiaoDien.Nhan("Trạng thái"), _trangThai });
-        _luoi.Them("Mã NV", n => n.MaNv, 70).Them("Họ tên", n => n.HoTen, 170, fill: true).Them("Chức vụ", n => n.ChucVu, 170)
+        _luoi.Them("Mã NV", n => n.MaNv, 70).Them("Mã TK", n => n.MaTk, 70).Them("Họ tên", n => n.HoTen, 170, fill: true).Them("Chức vụ", n => n.ChucVu, 170)
             .Them("SĐT", n => n.Sdt, 100).Them("Email", n => n.Email, 190).Ngay("Vào làm", n => n.NgayVaoLam)
             .Tien("Lương", n => n.Luong, 105).Them("Tài khoản", n => n.TenDangNhap, 110)
             .TrangThai("Vai trò", n => n.VaiTro, Nhan.VaiTro, 120).TrangThai("Trạng thái", n => n.TrangThai, Nhan.TrangThaiNhanVien, 90);
@@ -415,8 +414,8 @@ public sealed class TaiKhoanMH : ManHinh
         Muc.Nap(_trangThai, Nhan.CacMuc(Nhan.TrangThaiTaiKhoan));
         var loc = GiaoDien.HangNgang();
         loc.Controls.AddRange(new Control[] { _tim, GiaoDien.Nhan("Vai trò"), _vaiTro, GiaoDien.Nhan("Trạng thái"), _trangThai });
-        _luoi.Them("Mã TK", t => t.MaTk, 75).Them("Tên đăng nhập", t => t.TenDangNhap, 150).Them("Họ tên", t => t.HoTen, 200, fill: true)
-            .TrangThai("Vai trò", t => t.VaiTro, Nhan.VaiTro, 140).Them("Mã NV / KH", t => t.MaNv ?? t.MaKh, 100)
+        _luoi.Them("Mã TK", t => t.MaTk, 75).Them("Mã NV / KH", t => t.MaNv ?? t.MaKh, 100).Them("Tên đăng nhập", t => t.TenDangNhap, 150).Them("Họ tên", t => t.HoTen, 200, fill: true)
+            .TrangThai("Vai trò", t => t.VaiTro, Nhan.VaiTro, 140)
             .TrangThai("Trạng thái", t => t.TrangThai, Nhan.TrangThaiTaiKhoan, 100).Ngay("Ngày tạo", t => t.NgayTao, 130, coGio: true);
         _luoi.ChonThayDoi += t => _khoa.Text = t?.TrangThai == "KHOA" ? "Mở khóa  (Delete)" : "Khóa  (Delete)";
         _luoi.XemNhanh = TheTaiKhoan;

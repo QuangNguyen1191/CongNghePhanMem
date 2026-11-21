@@ -133,27 +133,32 @@ public class KhuyenMaiBLL
         }
         bang.TamTinh = bang.Dongs.Sum(d => d.ThanhTien);
 
+        // Voucher va muc hoa don khong cong don: tinh ca hai, lay muc giam nhieu hon (bang nhau thi uu tien voucher khach nhap)
         maVoucher = QuyTac.RongThanhNull(maVoucher)?.ToUpper();
+        var muc = _dal.LayMucHoaDonDangChay(ngay, tx).Where(m => bang.TamTinh >= m.MucApDungHoaDon)
+            .MaxBy(m => m.PhanTramGiamGia);
+        var giamMuc = muc == null ? 0 : Math.Round(bang.TamTinh * muc.PhanTramGiamGia / 100, 0);
         if (maVoucher != null)
         {
             var v = QuyTac.CanCo(_dal.LayVoucherDangChay(maVoucher, ngay, tx), "Mã voucher không tồn tại hoặc đã hết hạn");
-            bang.TienGiam = Math.Round(bang.TamTinh * v.PhanTramGiamGia / 100, 0);
-            bang.MaKm = v.MaKm;
-            bang.GhiChuKm = $"Voucher {v.MaVoucher} giảm {v.PhanTramGiamGia:0.##}%";
-            bang.LoaiGiam = "VOUCHER";
-            bang.MaVoucher = v.MaVoucher;
-        }
-        else
-        {
-            var muc = _dal.LayMucHoaDonDangChay(ngay, tx).Where(m => bang.TamTinh >= m.MucApDungHoaDon)
-                .MaxBy(m => m.PhanTramGiamGia);
-            if (muc != null)
+            var giamVoucher = Math.Round(bang.TamTinh * v.PhanTramGiamGia / 100, 0);
+            if (giamVoucher >= giamMuc)
             {
-                bang.TienGiam = Math.Round(bang.TamTinh * muc.PhanTramGiamGia / 100, 0);
-                bang.MaKm = muc.MaKm;
-                bang.GhiChuKm = $"Hóa đơn từ {muc.MucApDungHoaDon:N0}đ giảm {muc.PhanTramGiamGia:0.##}%";
-                bang.LoaiGiam = "HOA_DON";
+                bang.TienGiam = giamVoucher;
+                bang.MaKm = v.MaKm;
+                bang.GhiChuKm = $"Voucher {v.MaVoucher} giảm {v.PhanTramGiamGia:0.##}%";
+                bang.LoaiGiam = "VOUCHER";
+                bang.MaVoucher = v.MaVoucher;
+                muc = null;
             }
+        }
+        if (muc != null)
+        {
+            bang.TienGiam = giamMuc;
+            bang.MaKm = muc.MaKm;
+            bang.GhiChuKm = $"Hóa đơn từ {muc.MucApDungHoaDon:N0}đ giảm {muc.PhanTramGiamGia:0.##}%"
+                + (maVoucher != null ? $". Mức này có lợi hơn mã {maVoucher} nên được áp dụng" : "");
+            bang.LoaiGiam = "HOA_DON";
         }
         if (maKhThanhVien != null && LayUuDaiThanhVienMoi(maKhThanhVien, ngay, tx) is { ConLai: > 0 } ud)
         {

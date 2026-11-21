@@ -34,7 +34,7 @@ public sealed class PhieuNhapMH : ManHinh
         loc.Controls.AddRange(new Control[] { GiaoDien.Nhan("Từ ngày"), _tu, GiaoDien.Nhan("Đến ngày"), _den, GiaoDien.Nhan("NCC"), _ncc, ap });
         _ncc.SelectedIndexChanged += (_, _) => { if (!_dangNap) Tai(); };
 
-        _luoi.Them("Mã phiếu", p => p.MaPhieuNhap, 90).Ngay("Ngày nhập", p => p.NgayNhap).Them("Nhà cung cấp", p => p.TenNcc, 200, fill: true)
+        _luoi.Them("Mã phiếu", p => p.MaPhieuNhap, 90).Them("Mã NCC", p => p.MaNcc, 75).Them("Mã NV", p => p.MaNv, 70).Ngay("Ngày nhập", p => p.NgayNhap).Them("Nhà cung cấp", p => p.TenNcc, 200, fill: true)
             .Them("Người lập", p => p.TenNhanVien, 150).Tien("Tổng tiền", p => p.TongTien, 130);
         _dong.Them("Mã SP", c => c.MaSp, 70).Them("Sản phẩm", c => $"{c.TenSp} - {c.MauSac} - {c.KichCo}", 200, fill: true)
             .So("SL", c => c.SoLuong, 55).Tien("Giá nhập", c => c.DonGiaNhap, 100).Tien("Thành tiền", c => c.ThanhTien, 110);

@@ -98,13 +98,14 @@ public sealed class TimKiemMH : ManHinh
         var hang2 = GiaoDien.HangNgang();
         hang2.Controls.AddRange(new Control[] { nhomGhep, nhomCach });
 
-        _hd.Them("Mã HĐ", h => h.MaHoaDon, 80).Ngay("Ngày lập", h => h.NgayLap).Them("Khách hàng", h => h.TenKhachHang ?? "Khách vãng lai", 160, fill: true)
+        _hd.Them("Mã HĐ", h => h.MaHoaDon, 80).Them("Mã KH", h => h.MaKh ?? "Vãng lai", 72, mau: h => h.MaKh == null ? GiaoDien.ChuPhu : null)
+            .Them("Mã NV", h => h.MaNv, 70).Ngay("Ngày lập", h => h.NgayLap).Them("Khách hàng", h => h.TenKhachHang ?? "Khách vãng lai", 160, fill: true)
             .Them("Tỉnh", h => h.TinhThanhKhach, 120).Them("Nhân viên", h => h.TenNhanVien, 140).Them("Thanh toán", h => Nhan.Ten(Nhan.PhuongThuc, h.PhuongThucTt), 110)
             .Tien("Giảm", h => h.TienGiam, 90).Tien("Tổng tiền", h => h.TongTien, 110).TrangThai("Trạng thái", h => h.TrangThai, Nhan.TrangThaiHoaDon, 110);
         _hd.MoDong += h => MoManHinh?.Invoke("HoaDon", h.MaHoaDon);
-        _kh.Them("Mã KH", k => k.MaKh, 70).Them("Họ tên", k => k.HoTen, 170, fill: true).Them("SĐT", k => k.Sdt, 105).Them("Email", k => k.Email, 170)
+        _kh.Them("Mã KH", k => k.MaKh, 70).Them("Mã TK", k => k.MaTk ?? "Không", 70, mau: k => k.MaTk == null ? GiaoDien.ChuPhu : null).Them("Họ tên", k => k.HoTen, 170, fill: true).Them("SĐT", k => k.Sdt, 105).Them("Email", k => k.Email, 170)
             .Them("Tỉnh / thành", k => k.TinhThanh, 130).TrangThai("Hạng", k => k.HangThanhVien, Nhan.HangThanhVien, 85).So("Điểm", k => k.DiemTichLuy, 70);
-        _sp.Them("Mã SP", s => s.MaSp, 70).Them("Tên sản phẩm", s => s.TenSp, 220, fill: true).Them("Loại", s => s.TenLoaiSp, 110).Them("Màu", s => s.MauSac, 100)
+        _sp.Them("Mã SP", s => s.MaSp, 70).Them("Mã loại", s => s.MaLoaiSp, 70).Them("Tên sản phẩm", s => s.TenSp, 220, fill: true).Them("Loại", s => s.TenLoaiSp, 110).Them("Màu", s => s.MauSac, 100)
             .Them("Size", s => s.KichCo, 55).Tien("Đơn giá", s => s.DonGia, 100).So("Tồn", s => s.SoLuong, 60)
             .TrangThai("Trạng thái", s => s.TrangThai, Nhan.TrangThaiSanPham, 95);
 

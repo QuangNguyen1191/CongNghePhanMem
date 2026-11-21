@@ -50,7 +50,8 @@ public sealed class DonHangMH : ManHinh
             _tim, GiaoDien.Nhan("Trạng thái"), _trangThai, GiaoDien.Nhan("Nguồn"), _nguon, GiaoDien.Nhan("Từ"), _tu, GiaoDien.Nhan("đến"), _den, ap
         });
 
-        _luoi.Them("Mã đơn", d => d.MaDon, 78).Ngay("Ngày đặt", d => d.NgayDat, 118, coGio: true)
+        _luoi.Them("Mã đơn", d => d.MaDon, 78).Them("Mã KH", d => d.MaKh ?? "Vãng lai", 72, mau: d => d.MaKh == null ? GiaoDien.ChuPhu : null)
+            .Them("Mã HĐ", d => d.MaHoaDon, 78).Ngay("Ngày đặt", d => d.NgayDat, 118, coGio: true)
             .Them("Khách hàng", d => d.TenKhachHang, 150, fill: true).Them("SĐT nhận", d => d.SdtNhan, 100)
             .TrangThai("Nguồn", d => d.Nguon, Nhan.NguonDon, 80).Them("Thanh toán", d => Nhan.Ten(Nhan.PhuongThuc, d.PhuongThucTt), 105)
             .Tien("Tổng tiền", d => d.TongTien, 105).TrangThai("Trạng thái", d => d.TrangThai, Nhan.TrangThaiDon, 105)
@@ -59,9 +60,7 @@ public sealed class DonHangMH : ManHinh
         _dong.Them("Mã SP", c => c.MaSp, 70).Them("Sản phẩm", c => $"{c.TenSp} - {c.MauSac} - {c.KichCo}", 200, fill: true)
             .So("SL", c => c.SoLuong, 45).Tien("Đơn giá", c => c.DonGia, 95).Tien("Thành tiền", c => c.ThanhTien, 105);
         _chiTiet = new KhungChiTiet("Chi tiết đơn", _dong.Grid, "Sản phẩm trong đơn");
-        _chiTiet.HangNut.Controls.Add(_ruiRo);
-        _ruiRo.Dock = DockStyle.None;
-        _ruiRo.Width = 420;
+        _chiTiet.ThemVaoThongTin(_ruiRo);
 
         var trai = new Panel { Dock = DockStyle.Fill };
         trai.Controls.Add(BoCuc.KhungBang(_luoi.Grid));
@@ -276,9 +275,11 @@ public sealed class HoaDonMH : ManHinh
         foreach (var n in new[] { _tu, _den }) n.ValueChanged += (_, _) => Loc();
         _trangThai.SelectedIndexChanged += (_, _) => Loc();
 
-        _luoi.Them("Mã HĐ", h => h.MaHoaDon, 80).Ngay("Ngày lập", h => h.NgayLap, 90)
+        _luoi.Them("Mã HĐ", h => h.MaHoaDon, 80).Them("Mã đơn", h => h.MaDon ?? "Tại quầy", 80, mau: h => h.MaDon == null ? GiaoDien.ChuPhu : null)
+            .Them("Mã KH", h => h.MaKh ?? "Vãng lai", 72, mau: h => h.MaKh == null ? GiaoDien.ChuPhu : null).Them("Mã NV", h => h.MaNv, 70)
+            .Ngay("Ngày lập", h => h.NgayLap, 90)
             .Them("Khách hàng", h => h.TenKhachHang ?? "Khách vãng lai", 150, fill: true, mau: h => h.MaKh == null ? GiaoDien.ChuPhu : null)
-            .Them("Nhân viên", h => h.TenNhanVien, 130).Them("Mã đơn", h => h.MaDon ?? "Tại quầy", 80, mau: h => h.MaDon == null ? GiaoDien.ChuPhu : null)
+            .Them("Nhân viên", h => h.TenNhanVien, 130)
             .Them("Thanh toán", h => Nhan.Ten(Nhan.PhuongThuc, h.PhuongThucTt), 105).Tien("Giảm", h => h.TienGiam, 85)
             .Tien("Tổng tiền", h => h.TongTien, 105).TrangThai("Trạng thái", h => h.TrangThai, Nhan.TrangThaiHoaDon, 110);
         _luoi.MoDong += _ => InPdf();
@@ -430,7 +431,7 @@ public sealed class DoiTraMH : ManHinh
         loc.Controls.AddRange(new Control[] { GiaoDien.Nhan("Trạng thái"), _trangThai });
         _trangThai.SelectedIndexChanged += (_, _) => { if (!_dangNap) LamMoi(); };
 
-        _luoi.Them("Mã phiếu", d => d.MaDoiTra, 85).Ngay("Ngày", d => d.NgayDoiTra).Them("Mã HĐ", d => d.MaHoaDon, 80)
+        _luoi.Them("Mã phiếu", d => d.MaDoiTra, 85).Them("Mã HĐ", d => d.MaHoaDon, 80).Ngay("Ngày", d => d.NgayDoiTra)
             .Them("Khách hàng", d => d.TenKhachHang ?? "Khách vãng lai", 150, fill: true).Them("Loại", d => Nhan.Ten(Nhan.LoaiDoiTra, d.Loai), 110)
             .TrangThai("Trạng thái", d => d.TrangThai, Nhan.TrangThaiDoiTra, 100).Tien("Tiền hoàn", d => d.TienHoan, 100)
             .Them("Nhân viên", d => d.TenNhanVien, 130);

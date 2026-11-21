@@ -193,6 +193,8 @@ public sealed class KhungChiTiet : Panel
         };
         TieuDe = new Label { Text = tieuDe, Dock = DockStyle.Top, Height = 30, Font = GiaoDien.TieuDeNho, AutoEllipsis = true };
         HangNut = new FlowLayoutPanel { Dock = DockStyle.Top, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, Padding = new Padding(0, 2, 0, 6) };
+        // Thu tu tu tren xuong: tieu de, hang nut, BANG CHI TIET (sub), roi moi toi khung thong tin.
+        // Bang con len truoc de nhieu dong van thay ngay, khong phai keo xuong duoi khung thong tin.
         if (bangCon != null)
         {
             var vung = new Panel { Dock = DockStyle.Fill, Padding = new Padding(0, 4, 0, 0) };
@@ -200,11 +202,44 @@ public sealed class KhungChiTiet : Panel
             vung.Controls.Add(bangCon);
             if (tieuDeBangCon != null) vung.Controls.Add(GiaoDien.TieuDeMuc(tieuDeBangCon));
             Controls.Add(vung);
+            // Khung thong tin xuong cuoi, co tieu de muc rieng va cuon duoc khi dai
+            _duoi = new Panel { Dock = DockStyle.Bottom, AutoScroll = true, Height = 200 };
+            ThongTin.Dock = DockStyle.Top;
+            _duoi.Controls.Add(ThongTin);
+            _duoi.Controls.Add(GiaoDien.TieuDeMuc("Thông tin"));
+            ThongTin.SizeChanged += (_, _) => CanChieuCaoDuoi();
+            SizeChanged += (_, _) => CanChieuCaoDuoi();
+            Controls.Add(_duoi);
         }
-        Controls.Add(ThongTin);
+        else Controls.Add(ThongTin);
         Controls.Add(HangNut);
         Controls.Add(TieuDe);
         ThongTin.Xoa();
+    }
+
+    private readonly Panel? _duoi;
+
+    // Them 1 khung (vd do tin cay SDT) vao phan thong tin phia duoi, nam giua tieu de "Thong tin" va khung thong tin
+    public void ThemVaoThongTin(Control c)
+    {
+        if (_duoi == null)
+        {
+            HangNut.Controls.Add(c);
+            return;
+        }
+        c.Dock = DockStyle.Top;
+        _duoi.Controls.Add(c);
+        _duoi.Controls.SetChildIndex(c, 1);    // Dock Top: chi so cao nam tren -> tieu de (2), khung nay (1), thong tin (0)
+        c.SizeChanged += (_, _) => CanChieuCaoDuoi();
+        CanChieuCaoDuoi();
+    }
+
+    // Phan thong tin cao vua du noi dung, toi da 1/2 khung chi tiet (dai hon thi cuon), bang chi tiet chiem phan con lai
+    private void CanChieuCaoDuoi()
+    {
+        if (_duoi == null) return;
+        var canCo = _duoi.Controls.Cast<Control>().Where(c => c.Visible).Sum(c => c.Height) + 4;
+        _duoi.Height = Math.Max(80, Math.Min(canCo, (Height - 120) / 2));
     }
 }
 

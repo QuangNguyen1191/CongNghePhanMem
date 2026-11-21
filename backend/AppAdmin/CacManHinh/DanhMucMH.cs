@@ -117,7 +117,7 @@ public sealed class SanPhamMH : ManHinh
         var loc = GiaoDien.HangNgang();
         loc.Controls.AddRange(new Control[] { _tim, GiaoDien.Nhan("Loại"), _loai, GiaoDien.Nhan("Trạng thái"), _trangThai, _tonThap });
 
-        _luoi.Them("Mã SP", s => s.MaSp, 70).Them("Tên sản phẩm", s => s.TenSp, 240, fill: true).Them("Loại", s => s.TenLoaiSp, 110)
+        _luoi.Them("Mã SP", s => s.MaSp, 70).Them("Mã loại", s => s.MaLoaiSp, 70).Them("Tên sản phẩm", s => s.TenSp, 240, fill: true).Them("Loại", s => s.TenLoaiSp, 110)
             .Them("Màu", s => s.MauSac, 100).Them("Size", s => s.KichCo, 55).Tien("Đơn giá", s => s.DonGia, 100)
             .Them("Giá KM hôm nay", s => _giaKm.TryGetValue(s.MaSp, out var g) ? g : null, 115, "N0", canPhai: true, mau: _ => GiaoDien.Do)
             .Them("Tồn", s => s.SoLuong, 60, "N0", canPhai: true, mau: s => s.SoLuong < QuyTac.NguongTonThap ? GiaoDien.Do : null)
