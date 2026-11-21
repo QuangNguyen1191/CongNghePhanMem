@@ -230,7 +230,11 @@ public sealed class Luoi<T> where T : class
     public void ChonDong(Func<T, bool> dieuKien)
     {
         var i = _ds.FindIndex(x => dieuKien(x));
-        if (i >= 0) DatDongHienTai(i);
+        if (i < 0) return;
+        DatDongHienTai(i);
+        // Bang chua hien len man hinh (vd vua mo man hinh kem ma chung tu) thi DataGridView khong phat SelectionChanged:
+        // tu bao chon de khung chi tiet nap dung dong. Da bao roi (cung doi tuong) thi BaoChon tu bo qua.
+        BaoChon(false);
     }
 
     private void DatDongHienTai(int i)
