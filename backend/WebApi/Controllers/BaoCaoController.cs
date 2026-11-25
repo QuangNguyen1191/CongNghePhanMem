@@ -33,7 +33,8 @@ public class ThongKeController : CoSoController
     public IActionResult KhachHang(int? nam = null, string cach = ThongKeBLL.TruyVanMoi, string dinhDang = "json") =>
         TraVe(_bll.TheoKhachHang(nam, cach), dinhDang);
 
-    [HttpGet("san-pham")]
+    // 5e chi danh cho giam doc (ADMIN co chuc vu "Giám đốc"), xem BLL.NhomQuyen.BaoCaoGiamDoc
+    [HttpGet("san-pham"), CanQuyen(NhomQuyen.BaoCaoGiamDoc)]
     public IActionResult SanPham(int? nam, string cach = ThongKeBLL.TruyVanMoi, string dinhDang = "json") =>
         TraVe(_bll.TheoSanPhamQuy(nam ?? throw new LoiNghiepVu("Vui lòng chọn năm (nam)"), cach), dinhDang);
 

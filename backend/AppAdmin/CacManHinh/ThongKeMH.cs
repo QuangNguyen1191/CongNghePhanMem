@@ -14,8 +14,12 @@ public sealed class ThongKeMH : ManHinh
         new("5b", "5b. Thu - chi - lợi nhuận", "Thu = hóa đơn đã thanh toán; chi = phiếu nhập + tiền hoàn trả hàng"),
         new("5c", "5c. Theo nhân viên × năm", "Doanh thu từng nhân viên lập hóa đơn, mỗi năm 1 cột"),
         new("5d", "5d. Theo khách hàng × quý / năm", "Chọn 1 năm: cột là 4 quý. Tất cả năm: cột là các năm"),
-        new("5e", "5e. Theo sản phẩm × quý", "Doanh thu từng SKU theo 4 quý của 1 năm"),
+        new("5e", "5e. Theo sản phẩm × quý (giám đốc)", "Doanh thu từng SKU theo 4 quý của 1 năm. Chỉ tài khoản có chức vụ Giám đốc được xem"),
     };
+
+    // 5e chi danh cho giam doc: tai khoan ADMIN co chuc vu chua "Giám đốc" (BLL.NhomQuyen.BaoCaoGiamDoc)
+    private static bool DuocXem5e => Phien.Hien?.NhomQuyen.Contains(NhomQuyen.BaoCaoGiamDoc) == true;
+    private bool BiChan => BaoCao.Ma == "5e" && !DuocXem5e;
 
     // Thanh chon o tren: loai bao cao + tham so + cach tinh (gop cot chon bao cao cu vao 1 hang ngang)
     private readonly ComboBox _ds = GiaoDien.Chon(300);
@@ -153,13 +157,35 @@ public sealed class ThongKeMH : ManHinh
             else DoiBaoCao();
             return;
         }
+        if (BiChan)
+        {
+            HienBiChan();
+            return;
+        }
         var cach = _taiSuDung.Checked ? ThongKeBLL.TaiSuDung : ThongKeBLL.TruyVanMoi;
         if (!ThaoTac.Chay($"Báo cáo {BaoCao.Ma} ({(cach == ThongKeBLL.TaiSuDung ? "tái sử dụng" : "truy vấn mới")})", () => Tinh(cach), out var bang)) return;
         Hien(bang);
     }
 
+    // Khong chay truy van nao: xoa bang + bieu do, bao ly do ngay tren man hinh
+    private void HienBiChan()
+    {
+        _bang = null;
+        _khungSoSanh.Height = 0;
+        _tieuDe.Text = "5e. Theo sản phẩm × quý: chỉ dành cho giám đốc";
+        _meta.Text = $"Tài khoản {Phien.HoTen} ({Phien.Hien?.ChucVu ?? "không có chức vụ"}) không có quyền xem báo cáo này. Đăng nhập tài khoản Giám đốc (vd giamdoc) để xem.";
+        _luoi.XoaCot();
+        _luoi.Them("Đối tượng", d => d.Nhan, 260, fill: true);
+        _luoi.ChuKhiTrong = "Báo cáo theo sản phẩm chỉ dành cho giám đốc";
+        _luoi.Nap(new List<DongThongKeDTO>());
+        _bieuDo.TieuDe = _tieuDe.Text;
+        _bieuDo.ChuKhiTrong = "Chỉ dành cho giám đốc";
+        _bieuDo.Xoa();
+    }
+
     private BangThongKeDTO Tinh(string cach)
     {
+        if (BiChan) throw new LoiNghiepVu("Báo cáo 5e (theo sản phẩm × quý) chỉ dành cho giám đốc.");
         var bll = new ThongKeBLL();
         var nam = int.TryParse(Muc.Lay(_nam), out var n) ? n : (int?)null;
         return BaoCao.Ma switch
@@ -194,8 +220,9 @@ public sealed class ThongKeMH : ManHinh
         _bang = bang;
         var dongs = DongHien(bang, out var soDuLieu);
         var gon = soDuLieu > SoDongGon && !_tatCa;
-        _xemTatCa.Enabled = soDuLieu > SoDongGon;
-        _xemTatCa.Text = _tatCa && soDuLieu > SoDongGon ? $"Thu gọn top {SoDongGon}  (Ctrl+T)" : $"Xem tất cả  (Ctrl+T)";
+        // Nut luon bam duoc (ke ca khi <= 10 dong, luc do 2 che do hien giong nhau)
+        _xemTatCa.Enabled = true;
+        _xemTatCa.Text = _tatCa ? $"Thu gọn top {SoDongGon}  (Ctrl+T)" : $"Xem tất cả  (Ctrl+T)";
         _tieuDe.Text = bang.TieuDe + (gon ? (BaoCao.Ma == "5b" ? $" · {SoDongGon} kỳ gần nhất" : $" · top {SoDongGon}") : "");
         _meta.Text = $"{(bang.CachTinh == ThongKeBLL.TaiSuDung ? "Tái sử dụng (LINQ)" : "Truy vấn mới (GROUP BY)")}"
                      + $"  ·  {bang.ThoiGianMs} ms  ·  {bang.SoCauTruyVan} câu SQL  ·  hiện {dongs.Count(d => d.Nhan != ThongKeBLL.TongCong)}/{soDuLieu} dòng"

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import ExcelJS from 'exceljs';
-import { admin, anDanh, khach, loi, nhanVien, ok, RUN, taoSanPhamCoTon, sdtMoi, thuKho } from './helpers';
+import { admin, anDanh, giamDoc, khach, loi, nhanVien, ok, RUN, taoSanPhamCoTon, sdtMoi, thuKho } from './helpers';
 
 const XLSX = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 const laXlsx = (b: Buffer) => b.subarray(0, 2).toString() === 'PK';
@@ -33,7 +33,7 @@ test.describe('ThongKe (yeu cau 3 + 5, chi ADMIN)', () => {
   ];
   for (const url of baoCao) {
     test(`2 cach cho ket qua giong nhau: ${url}`, async () => {
-      const ad = await admin();
+      const ad = url.startsWith('san-pham') ? await giamDoc() : await admin();   // 5e chi giam doc
       await ad.post('/api/thong-ke/lam-moi');
       const moi = await ok(await ad.get(`/api/thong-ke/${url}&cach=TRUY_VAN_MOI`.replace(/^([^?]*)&/, '$1?')));
       const tsd = await ok(await ad.get(`/api/thong-ke/${url}&cach=TAI_SU_DUNG`.replace(/^([^?]*)&/, '$1?')));
@@ -76,7 +76,7 @@ test.describe('ThongKe (yeu cau 3 + 5, chi ADMIN)', () => {
     expect(x.status()).toBe(200);
     expect(x.headers()['content-type']).toContain(XLSX);
     expect(laXlsx(await x.body())).toBeTruthy();
-    const p = await ad.get('/api/thong-ke/san-pham?nam=2025&dinhDang=PDF');
+    const p = await (await giamDoc()).get('/api/thong-ke/san-pham?nam=2025&dinhDang=PDF');
     expect(p.status()).toBe(200);
     expect(laPdf(await p.body())).toBeTruthy();
     expect(p.headers()['content-disposition']).toContain('.pdf');
@@ -88,7 +88,13 @@ test.describe('ThongKe (yeu cau 3 + 5, chi ADMIN)', () => {
     await loi(await ad.get('/api/thong-ke/thu-chi?kieu=TUAN'), 400, /THANG/);
     await loi(await ad.get('/api/thong-ke/nhan-vien?cach=ABC'), 400);
     expect((await ad.get('/api/thong-ke/tong-tien')).status()).toBe(400);   // thieu ngay bat buoc
-    expect((await ad.get('/api/thong-ke/san-pham')).status()).toBe(400);    // thieu nam
+    expect((await (await giamDoc()).get('/api/thong-ke/san-pham')).status()).toBe(400);    // thieu nam
+  });
+
+  test('bao cao theo san pham (5e) chi giam doc', async () => {
+    await loi(await (await admin()).get('/api/thong-ke/san-pham?nam=2025'), 403, /giám đốc/);   // quanly: ADMIN nhung khong phai giam doc
+    expect((await (await giamDoc()).get('/api/thong-ke/san-pham?nam=2025')).status()).toBe(200);
+    expect((await (await admin()).get('/api/thong-ke/khach-hang?nam=2025')).status()).toBe(200); // bao cao khac van xem duoc
   });
 
   test('chi ADMIN xem thong ke', async () => {

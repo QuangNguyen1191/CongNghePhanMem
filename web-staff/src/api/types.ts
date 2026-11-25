@@ -8,7 +8,8 @@ export interface PhienDangNhap {
   hoTen: string;
   chucVu?: string | null;
   // Nhóm quyền server tính theo chức vụ (ban-hang / don-online / kho); backend chặn từng API theo đúng danh sách này
-  nhomQuyen?: ('ban-hang' | 'don-online' | 'kho')[] | null;
+  // 'bao-cao-giam-doc': riêng ADMIN chức vụ Giám đốc (báo cáo 5e ở App Admin), web staff không dùng
+  nhomQuyen?: ('ban-hang' | 'don-online' | 'kho' | 'bao-cao-giam-doc')[] | null;
   token?: string | null;
 }
 

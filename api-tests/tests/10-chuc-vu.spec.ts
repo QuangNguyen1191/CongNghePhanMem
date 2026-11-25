@@ -13,6 +13,7 @@ test.describe('Phan quyen theo chuc vu', () => {
     expect(await quyen('banhangonline', 'web-staff')).toEqual(['don-online']);
     expect(await quyen('thukho', 'web-staff')).toEqual(['kho']);
     expect(await quyen('quanly', 'web-staff')).toEqual(['ban-hang', 'don-online', 'kho']);
+    expect(await quyen('giamdoc', 'web-staff')).toEqual(['ban-hang', 'don-online', 'kho', 'bao-cao-giam-doc']);
     expect(await quyen('khach01', 'web-ban-hang')).toEqual([]);
   });
 

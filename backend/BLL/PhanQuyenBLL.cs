@@ -13,13 +13,19 @@ public static class NhomQuyen
     public const string BanHang = "ban-hang";        // ban tai quay, huy hoa don tai quay
     public const string DonOnline = "don-online";    // xac nhan / giao / hoan tat / huy don online
     public const string Kho = "kho";                 // nhap hang, nha cung cap
+    // Rieng tai khoan ADMIN co chuc vu "giam doc": bao cao 5e (doanh thu theo san pham x quy).
+    // KHONG nam trong TatCa, nen ADMIN khac (vd "Quan ly cua hang") khong xem duoc 5e.
+    public const string BaoCaoGiamDoc = "bao-cao-giam-doc";
 
     public static readonly IReadOnlyList<string> TatCa = new[] { BanHang, DonOnline, Kho };
 
     public static readonly IReadOnlyDictionary<string, string> Ten = new Dictionary<string, string>
     {
         [BanHang] = "bán tại quầy", [DonOnline] = "xử lý đơn online", [Kho] = "kho / nhập hàng",
+        [BaoCaoGiamDoc] = "giám đốc (báo cáo theo sản phẩm)",
     };
+
+    public static bool LaGiamDoc(string? chucVu) => BoDau(chucVu ?? "").Contains("giam doc");
 
     // Quy tac theo tu khoa trong chuc vu (khong phan biet dau, hoa thuong):
     //   "quan ly" / "giam doc" -> tat ca | "thu ngan" / "ban hang tai quay" -> ban-hang | "online" -> don-online | "kho" -> kho
@@ -27,7 +33,7 @@ public static class NhomQuyen
     // Chuc vu khong khop tu khoa nao -> KHONG co nhom nao (mac dinh an toan): chi xem tong quan / san pham, cho admin dat dung chuc vu.
     public static List<string> TheoChucVu(string vaiTro, string? chucVu)
     {
-        if (vaiTro == "ADMIN") return TatCa.ToList();
+        if (vaiTro == "ADMIN") return LaGiamDoc(chucVu) ? TatCa.Append(BaoCaoGiamDoc).ToList() : TatCa.ToList();
         if (vaiTro != "NHAN_VIEN") return new();
         var cv = BoDau(chucVu ?? "");
         if (cv.Contains("quan ly") || cv.Contains("giam doc")) return TatCa.ToList();
